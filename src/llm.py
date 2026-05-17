@@ -64,6 +64,44 @@ def _format_history(history: list[dict]) -> str:
     return "\n".join(lines)
 
 
+_CATEGORIZATION_TOOL = {
+    "name": "record_categorization",
+    "description": (
+        "Record a structured categorization of the user's reply across the "
+        "three goals plus an overall mood. Use null for optional text fields "
+        "when the reply doesn't mention something."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "mood": {
+                "type": "string",
+                "enum": ["good", "bad", "neutral"],
+                "description": "Overall mood of the reply.",
+            },
+            "goal1_clarity": {"type": "boolean"},
+            "goal1_done_today": {"type": "boolean"},
+            "goal1_good": {"type": ["string", "null"]},
+            "goal1_bad": {"type": ["string", "null"]},
+            "goal2_clarity": {"type": "boolean"},
+            "goal2_done_today": {"type": "boolean"},
+            "goal2_good": {"type": ["string", "null"]},
+            "goal2_bad": {"type": ["string", "null"]},
+            "goal3_clarity": {"type": "boolean"},
+            "goal3_done_today": {"type": "boolean"},
+            "goal3_good": {"type": ["string", "null"]},
+            "goal3_bad": {"type": ["string", "null"]},
+        },
+        "required": [
+            "mood",
+            "goal1_clarity", "goal1_done_today", "goal1_good", "goal1_bad",
+            "goal2_clarity", "goal2_done_today", "goal2_good", "goal2_bad",
+            "goal3_clarity", "goal3_done_today", "goal3_good", "goal3_bad",
+        ],
+    },
+}
+
+
 def _format_question_user(goals: list[Goal], history: list[dict]) -> str:
     return (
         "Goals:\n"
@@ -71,6 +109,20 @@ def _format_question_user(goals: list[Goal], history: list[dict]) -> str:
         "Recent replies (oldest first):\n"
         f"{_format_history(history)}\n\n"
         "Ask the next question."
+    )
+
+
+def _format_categorize_user(
+    response: str, goals: list[Goal], history: list[dict]
+) -> str:
+    return (
+        "Goals:\n"
+        f"{_format_goals(goals)}\n\n"
+        "Recent replies (oldest first):\n"
+        f"{_format_history(history)}\n\n"
+        "User's latest reply:\n"
+        f"{response}\n\n"
+        "Call record_categorization with your assessment."
     )
 
 
@@ -111,7 +163,38 @@ class AnthropicLLMClient:
     def categorize(
         self, response: str, goals: list[Goal], history: list[dict]
     ) -> Categorization:
-        raise NotImplementedError("categorize is implemented in the next task")
+        resp = self._client().messages.create(
+            model=self._model,
+            max_tokens=1024,
+            system=_SYSTEM_CATEGORIZE,
+            tools=[_CATEGORIZATION_TOOL],
+            tool_choice={"type": "tool", "name": "record_categorization"},
+            messages=[
+                {
+                    "role": "user",
+                    "content": _format_categorize_user(response, goals, history),
+                }
+            ],
+        )
+        tool_use = next(
+            (b for b in resp.content if getattr(b, "type", None) == "tool_use"),
+            None,
+        )
+        if tool_use is None:
+            raise RuntimeError(
+                "model did not call record_categorization tool"
+            )
+        data = tool_use.input
+        per_goal = {
+            i: GoalCat(
+                clarity=bool(data[f"goal{i}_clarity"]),
+                done_today=bool(data[f"goal{i}_done_today"]),
+                something_good=data.get(f"goal{i}_good"),
+                something_bad=data.get(f"goal{i}_bad"),
+            )
+            for i in (1, 2, 3)
+        }
+        return Categorization(mood=data["mood"], per_goal=per_goal)
 
 
 def make_llm_client(config) -> LLMClient:
