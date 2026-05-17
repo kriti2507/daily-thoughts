@@ -58,26 +58,30 @@ def main(argv: list[str] | None = None) -> int:
         traceback.print_exc(file=sys.stderr)
         reply = None
 
-    if reply is not None:
-        db.insert_thought(
-            db_path,
-            prompt=prompt,
-            sent_at=sent_at,
-            telegram_message_id=msg_id,
-            response=reply.text,
-            responded_at=reply.received_at,
-            status="replied",
-        )
-    else:
-        db.insert_thought(
-            db_path,
-            prompt=prompt,
-            sent_at=sent_at,
-            telegram_message_id=msg_id,
-            response=None,
-            responded_at=None,
-            status="timed_out",
-        )
+    try:
+        if reply is not None:
+            db.insert_thought(
+                db_path,
+                prompt=prompt,
+                sent_at=sent_at,
+                telegram_message_id=msg_id,
+                response=reply.text,
+                responded_at=reply.received_at,
+                status="replied",
+            )
+        else:
+            db.insert_thought(
+                db_path,
+                prompt=prompt,
+                sent_at=sent_at,
+                telegram_message_id=msg_id,
+                response=None,
+                responded_at=None,
+                status="timed_out",
+            )
+    except Exception as exc:
+        print(f"db write failed: {exc}", file=sys.stderr)
+        return 1
 
     return 0
 
