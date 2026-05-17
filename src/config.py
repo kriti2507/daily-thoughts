@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 from dotenv import dotenv_values
 
@@ -11,6 +12,10 @@ _REQUIRED_KEYS = (
     "TELEGRAM_CHAT_ID",
     "REPLY_TIMEOUT_SECONDS",
     "DB_PATH",
+    "GOALS_PATH",
+    "HISTORY_DAYS",
+    "LLM_PROVIDER",
+    "LLM_MODEL",
 )
 
 
@@ -20,6 +25,11 @@ class Config:
     telegram_chat_id: int
     reply_timeout_seconds: int
     db_path: Path
+    goals_path: Path
+    history_days: int
+    llm_provider: str
+    llm_model: str
+    anthropic_api_key: Optional[str]
 
 
 def load_config(env_path: Path) -> Config:
@@ -47,9 +57,28 @@ def load_config(env_path: Path) -> Config:
             f"REPLY_TIMEOUT_SECONDS must be an integer, got: {values['REPLY_TIMEOUT_SECONDS']!r}"
         ) from exc
 
+    try:
+        history_days = int(values["HISTORY_DAYS"])
+    except ValueError as exc:
+        raise ValueError(
+            f"HISTORY_DAYS must be an integer, got: {values['HISTORY_DAYS']!r}"
+        ) from exc
+
+    provider = values["LLM_PROVIDER"].strip().lower()
+    anthropic_key = values.get("ANTHROPIC_API_KEY") or None
+    if provider == "anthropic" and not anthropic_key:
+        raise ValueError(
+            "ANTHROPIC_API_KEY is required when LLM_PROVIDER=anthropic"
+        )
+
     return Config(
         telegram_bot_token=values["TELEGRAM_BOT_TOKEN"],
         telegram_chat_id=chat_id,
         reply_timeout_seconds=timeout,
         db_path=Path(values["DB_PATH"]),
+        goals_path=Path(values["GOALS_PATH"]),
+        history_days=history_days,
+        llm_provider=provider,
+        llm_model=values["LLM_MODEL"],
+        anthropic_api_key=anthropic_key,
     )
