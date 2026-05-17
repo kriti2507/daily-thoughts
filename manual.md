@@ -128,3 +128,41 @@ crontab -e
 ```
 
 Re-enable by removing the `#`.
+
+## 5. Editing `goals.md` and LLM settings
+
+### `goals.md`
+
+The bot's questions and categorization are driven by `goals.md` at the repo root. Exactly 3 H2 headings, in order:
+
+```markdown
+# Goals
+
+## 1. <Goal title>
+<Description>
+
+## 2. <Goal title>
+<Description>
+
+## 3. <Goal title>
+<Description>
+```
+
+If you remove a heading or change the indices, the next run will exit 1 with a clear error before posting anything to Telegram.
+
+You can edit the title or description any time — the goal *slot* (1/2/3) is what historic rows are tied to, not the title.
+
+### LLM env vars
+
+| Variable          | Default                          | Notes                                       |
+| ----------------- | -------------------------------- | ------------------------------------------- |
+| `LLM_PROVIDER`    | `anthropic`                      | Only `anthropic` is implemented in v2.      |
+| `LLM_MODEL`       | `claude-haiku-4-5-20251001`      | Any Claude model id works.                  |
+| `ANTHROPIC_API_KEY` | —                              | Required when provider is `anthropic`.       |
+| `GOALS_PATH`      | `goals.md`                       | Relative paths resolve from the repo root.  |
+| `HISTORY_DAYS`    | `7`                              | How many days of replied rows to pass to the LLM. |
+
+If the LLM fails (network, bad key, etc.), the failure mode depends on where it happens:
+
+- Failure during **question generation**: the run is skipped — nothing posted to Telegram, no row written. Cron just tries again next time.
+- Failure during **categorization** (after you've already replied): the row is still written with your reply intact, but the categorization columns stay NULL. Averaging over 7 days smooths these gaps out.
