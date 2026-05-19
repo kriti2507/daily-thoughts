@@ -26,12 +26,23 @@ class Categorization:
     per_goal: dict[int, GoalCat]  # keys: 1, 2, 3
 
 
+_MIN_HISTORY_FOR_REFLECTION = 3
+
 _SYSTEM_QUESTION = (
     "You are a coaching assistant. The user is tracking three personal goals "
     "and you receive their last week of replies (with timestamps and per-goal "
     "categorization). Ask ONE focused question that (a) helps them reflect on "
     "a goal that needs attention based on recent trends and (b) is likely to "
     "elicit answers that fill the categorization fields (mood, per-goal "
+    "clarity/done/something good/something bad). Keep it under 2 sentences. "
+    "Output only the question text — no preamble, no quotes."
+)
+
+_SYSTEM_QUESTION_COLD_START = (
+    "You are a coaching assistant. The user has just started tracking three "
+    "personal goals and there isn't enough reply history yet to spot trends. "
+    "Ask ONE focused, encouraging opening question tied to one specific goal "
+    "that will help elicit a substantive first reply (mood, per-goal "
     "clarity/done/something good/something bad). Keep it under 2 sentences. "
     "Output only the question text — no preamble, no quotes."
 )
@@ -112,6 +123,15 @@ def _format_question_user(goals: list[Goal], history: list[dict]) -> str:
     )
 
 
+def _format_question_user_cold_start(goals: list[Goal]) -> str:
+    return (
+        "Goals:\n"
+        f"{_format_goals(goals)}\n\n"
+        "The user has just started tracking these goals — there isn't enough "
+        "reply history yet. Pick one goal and ask an opening question."
+    )
+
+
 def _format_categorize_user(
     response: str, goals: list[Goal], history: list[dict]
 ) -> str:
@@ -147,13 +167,18 @@ class AnthropicLLMClient:
     def generate_question(
         self, goals: list[Goal], history: list[dict]
     ) -> str:
+        if len(history) < _MIN_HISTORY_FOR_REFLECTION:
+            system = _SYSTEM_QUESTION_COLD_START
+            user = _format_question_user_cold_start(goals)
+        else:
+            system = _SYSTEM_QUESTION
+            user = _format_question_user(goals, history)
+
         resp = self._client().messages.create(
             model=self._model,
             max_tokens=300,
-            system=_SYSTEM_QUESTION,
-            messages=[
-                {"role": "user", "content": _format_question_user(goals, history)}
-            ],
+            system=system,
+            messages=[{"role": "user", "content": user}],
         )
         text = "".join(
             getattr(b, "text", "") for b in resp.content if getattr(b, "type", None) == "text"

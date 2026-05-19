@@ -109,6 +109,27 @@ def test_generate_question_passes_model_and_system_prompt(MockAnthropic):
     assert "Meditate" in user_content
 
 
+def _history_row(idx: int, response: str = "row reply") -> dict:
+    return {
+        "sent_at": f"2026-05-{10 + idx:02d}T09:00:00+00:00",
+        "response": response,
+        "mood": "good",
+        "goal1_done_today": 1,
+        "goal2_done_today": 0,
+        "goal3_done_today": 1,
+        "goal1_clarity": 1,
+        "goal1_good": None,
+        "goal1_bad": None,
+        "goal2_clarity": 1,
+        "goal2_good": None,
+        "goal2_bad": None,
+        "goal3_clarity": 1,
+        "goal3_good": None,
+        "goal3_bad": None,
+        "prompt": "Q",
+    }
+
+
 @patch("src.llm.anthropic.Anthropic")
 def test_generate_question_includes_history_in_user_message(MockAnthropic):
     mock_inst = MagicMock()
@@ -117,25 +138,11 @@ def test_generate_question_includes_history_in_user_message(MockAnthropic):
     mock_response.content = [_text_block("Q?")]
     mock_inst.messages.create.return_value = mock_response
 
+    # Three rows: at threshold, full-reflection path is used.
     history = [
-        {
-            "sent_at": "2026-05-15T09:00:00+00:00",
-            "response": "ran 5k yesterday",
-            "mood": "good",
-            "goal1_done_today": 1,
-            "goal2_done_today": 0,
-            "goal3_done_today": 1,
-            "goal1_clarity": 1,
-            "goal1_good": "5k done",
-            "goal1_bad": None,
-            "goal2_clarity": 1,
-            "goal2_good": None,
-            "goal2_bad": "skipped reading",
-            "goal3_clarity": 1,
-            "goal3_good": "ten minutes",
-            "goal3_bad": None,
-            "prompt": "How's it going?",
-        }
+        _history_row(0, response="ran 5k yesterday"),
+        _history_row(1, response="skipped reading"),
+        _history_row(2, response="meditated 10 min"),
     ]
 
     client = AnthropicLLMClient(api_key="sk-test", model="claude-test")
@@ -143,6 +150,69 @@ def test_generate_question_includes_history_in_user_message(MockAnthropic):
 
     user_content = mock_inst.messages.create.call_args.kwargs["messages"][0]["content"]
     assert "ran 5k yesterday" in user_content
+
+
+@patch("src.llm.anthropic.Anthropic")
+def test_generate_question_uses_cold_start_when_history_empty(MockAnthropic):
+    mock_inst = MagicMock()
+    MockAnthropic.return_value = mock_inst
+    mock_response = MagicMock()
+    mock_response.content = [_text_block("Q?")]
+    mock_inst.messages.create.return_value = mock_response
+
+    client = AnthropicLLMClient(api_key="sk-test", model="claude-test")
+    client.generate_question(_goals(), [])
+
+    call = mock_inst.messages.create.call_args
+    user_content = call.kwargs["messages"][0]["content"]
+    # Cold-start path: no "Recent replies" section
+    assert "Recent replies" not in user_content
+    # Goals are still mentioned
+    assert "Run" in user_content
+    # System prompt indicates cold-start context
+    assert "just started" in call.kwargs["system"].lower()
+
+
+@patch("src.llm.anthropic.Anthropic")
+def test_generate_question_uses_cold_start_when_history_has_two_rows(MockAnthropic):
+    mock_inst = MagicMock()
+    MockAnthropic.return_value = mock_inst
+    mock_response = MagicMock()
+    mock_response.content = [_text_block("Q?")]
+    mock_inst.messages.create.return_value = mock_response
+
+    history = [_history_row(0, response="row 0 reply"), _history_row(1, response="row 1 reply")]
+
+    client = AnthropicLLMClient(api_key="sk-test", model="claude-test")
+    client.generate_question(_goals(), history)
+
+    call = mock_inst.messages.create.call_args
+    user_content = call.kwargs["messages"][0]["content"]
+    # Two rows is still below threshold of 3 — cold-start path is used.
+    assert "Recent replies" not in user_content
+    assert "row 0 reply" not in user_content
+
+
+@patch("src.llm.anthropic.Anthropic")
+def test_generate_question_uses_full_reflection_with_three_rows(MockAnthropic):
+    mock_inst = MagicMock()
+    MockAnthropic.return_value = mock_inst
+    mock_response = MagicMock()
+    mock_response.content = [_text_block("Q?")]
+    mock_inst.messages.create.return_value = mock_response
+
+    history = [_history_row(i, response=f"row {i} reply") for i in range(3)]
+
+    client = AnthropicLLMClient(api_key="sk-test", model="claude-test")
+    client.generate_question(_goals(), history)
+
+    call = mock_inst.messages.create.call_args
+    user_content = call.kwargs["messages"][0]["content"]
+    # At threshold of 3 — full reflection path includes history.
+    assert "Recent replies" in user_content
+    assert "row 2 reply" in user_content
+    # System prompt is the trend-reflection one, not cold-start
+    assert "just started" not in call.kwargs["system"].lower()
 
 
 @patch("src.llm.anthropic.Anthropic")
