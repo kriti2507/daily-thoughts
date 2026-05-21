@@ -103,3 +103,95 @@ class TestToday:
         _insert(db_path, sent_at=yesterday)
         resp = client.get("/api/today")
         assert resp.json() is None
+
+
+class TestStats:
+    def test_empty_db(self, client):
+        resp = client.get("/api/stats")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["streak"] == 0
+        assert data["streak_is_best"] is False
+        assert data["total_entries"] == 0
+        assert data["mood_counts_7d"] == {"good": 0, "neutral": 0, "bad": 0}
+        assert data["goal_clarity_avg_7d"]["goal1"]["avg"] == 0
+        assert data["goal_clarity_avg_7d"]["goal2"]["avg"] == 0
+        assert data["goal_clarity_avg_7d"]["goal3"]["avg"] == 0
+        assert len(data["weekly_moods"]) == 7
+
+    def test_streak_counts_consecutive_days(self, client, db_path):
+        from datetime import datetime, timezone, timedelta
+        today = datetime.now(tz=timezone.utc)
+        for offset in range(3):
+            day = today - timedelta(days=offset)
+            sent = day.strftime("%Y-%m-%dT10:00:00+00:00")
+            _insert(db_path, sent_at=sent)
+        resp = client.get("/api/stats")
+        assert resp.json()["streak"] == 3
+
+    def test_streak_breaks_on_gap(self, client, db_path):
+        from datetime import datetime, timezone, timedelta
+        today = datetime.now(tz=timezone.utc)
+        # Insert today, yesterday, and 3 days ago (gap at 2 days ago)
+        for offset in [0, 1, 3]:
+            day = today - timedelta(days=offset)
+            sent = day.strftime("%Y-%m-%dT10:00:00+00:00")
+            _insert(db_path, sent_at=sent)
+        resp = client.get("/api/stats")
+        assert resp.json()["streak"] == 2
+
+    def test_streak_is_best(self, client, db_path):
+        from datetime import datetime, timezone, timedelta
+        today = datetime.now(tz=timezone.utc)
+        for offset in range(2):
+            day = today - timedelta(days=offset)
+            sent = day.strftime("%Y-%m-%dT10:00:00+00:00")
+            _insert(db_path, sent_at=sent)
+        resp = client.get("/api/stats")
+        data = resp.json()
+        assert data["streak"] == 2
+        assert data["streak_is_best"] is True
+
+    def test_mood_counts_7d(self, client, db_path):
+        from datetime import datetime, timezone, timedelta
+        today = datetime.now(tz=timezone.utc)
+        _insert(db_path, sent_at=today.strftime("%Y-%m-%dT10:00:00+00:00"), mood="good")
+        yesterday = today - timedelta(days=1)
+        _insert(db_path, sent_at=yesterday.strftime("%Y-%m-%dT10:00:00+00:00"), mood="good")
+        two_days_ago = today - timedelta(days=2)
+        _insert(db_path, sent_at=two_days_ago.strftime("%Y-%m-%dT10:00:00+00:00"), mood="bad")
+        resp = client.get("/api/stats")
+        counts = resp.json()["mood_counts_7d"]
+        assert counts["good"] == 2
+        assert counts["bad"] == 1
+        assert counts["neutral"] == 0
+
+    def test_goal_clarity_avg_7d(self, client, db_path):
+        from datetime import datetime, timezone, timedelta
+        today = datetime.now(tz=timezone.utc)
+        yesterday = today - timedelta(days=1)
+        _insert(db_path, sent_at=today.strftime("%Y-%m-%dT10:00:00+00:00"), g1_clarity=6)
+        _insert(db_path, sent_at=yesterday.strftime("%Y-%m-%dT10:00:00+00:00"), g1_clarity=8)
+        resp = client.get("/api/stats")
+        avg = resp.json()["goal_clarity_avg_7d"]["goal1"]["avg"]
+        assert avg == 7.0
+
+    def test_total_entries(self, client, db_path):
+        from datetime import datetime, timezone, timedelta
+        today = datetime.now(tz=timezone.utc)
+        for offset in range(4):
+            day = today - timedelta(days=offset)
+            _insert(db_path, sent_at=day.strftime("%Y-%m-%dT10:00:00+00:00"))
+        resp = client.get("/api/stats")
+        assert resp.json()["total_entries"] == 4
+
+    def test_weekly_moods_structure(self, client, db_path):
+        from datetime import datetime, timezone
+        today = datetime.now(tz=timezone.utc)
+        _insert(db_path, sent_at=today.strftime("%Y-%m-%dT10:00:00+00:00"), mood="good")
+        resp = client.get("/api/stats")
+        weekly = resp.json()["weekly_moods"]
+        assert len(weekly) == 7
+        for item in weekly:
+            assert "date" in item
+            assert "mood" in item
