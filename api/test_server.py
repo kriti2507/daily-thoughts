@@ -195,3 +195,59 @@ class TestStats:
         for item in weekly:
             assert "date" in item
             assert "mood" in item
+
+
+class TestEntries:
+    def test_empty_db(self, client):
+        resp = client.get("/api/entries")
+        assert resp.status_code == 200
+        assert resp.json() == []
+
+    def test_returns_entries_within_days(self, client, db_path):
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(tz=timezone.utc)
+        _insert(db_path, sent_at=(now - timedelta(days=2)).strftime("%Y-%m-%dT10:00:00+00:00"),
+                prompt="recent")
+        _insert(db_path, sent_at=(now - timedelta(days=30)).strftime("%Y-%m-%dT10:00:00+00:00"),
+                prompt="old")
+        resp = client.get("/api/entries?days=7")
+        data = resp.json()
+        assert len(data) == 1
+        assert data[0]["prompt"] == "recent"
+
+    def test_default_days_is_7(self, client, db_path):
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(tz=timezone.utc)
+        _insert(db_path, sent_at=(now - timedelta(days=5)).strftime("%Y-%m-%dT10:00:00+00:00"))
+        _insert(db_path, sent_at=(now - timedelta(days=10)).strftime("%Y-%m-%dT10:00:00+00:00"))
+        resp = client.get("/api/entries")
+        assert len(resp.json()) == 1
+
+    def test_entries_have_all_fields(self, client, db_path):
+        from datetime import datetime, timezone
+        now = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT10:00:00+00:00")
+        _insert(db_path, sent_at=now, mood="good", prompt="Q?", response="A!")
+        data = client.get("/api/entries").json()
+        entry = data[0]
+        assert "id" in entry
+        assert entry["prompt"] == "Q?"
+        assert entry["response"] == "A!"
+        assert entry["mood"] == "good"
+        assert "sent_at" in entry
+        assert "goal1_clarity" in entry
+
+    def test_entries_sorted_newest_first(self, client, db_path):
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(tz=timezone.utc)
+        _insert(db_path, sent_at=(now - timedelta(days=3)).strftime("%Y-%m-%dT10:00:00+00:00"), prompt="older")
+        _insert(db_path, sent_at=(now - timedelta(days=1)).strftime("%Y-%m-%dT10:00:00+00:00"), prompt="newer")
+        data = client.get("/api/entries").json()
+        assert data[0]["prompt"] == "newer"
+        assert data[1]["prompt"] == "older"
+
+    def test_excludes_timed_out(self, client, db_path):
+        from datetime import datetime, timezone
+        now = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT10:00:00+00:00")
+        _insert(db_path, sent_at=now, status="timed_out", response=None)
+        data = client.get("/api/entries").json()
+        assert len(data) == 0

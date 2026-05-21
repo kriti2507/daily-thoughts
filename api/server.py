@@ -3,7 +3,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 DB_PATH = Path(os.environ.get("DB_PATH", "../data/thoughts.db"))
@@ -154,6 +154,41 @@ def get_stats():
         "goal_clarity_trend": goal_clarity_trend,
         "weekly_moods": weekly_moods,
     }
+
+
+@app.get("/api/entries")
+def get_entries(days: int = Query(default=7, ge=1, le=365)):
+    cutoff = (datetime.now(tz=timezone.utc) - timedelta(days=days)).isoformat()
+    conn = _get_db()
+    rows = conn.execute(
+        "SELECT * FROM thoughts WHERE status = 'replied' AND sent_at >= ? "
+        "ORDER BY sent_at DESC",
+        (cutoff,),
+    ).fetchall()
+    conn.close()
+    return [
+        {
+            "id": r["id"],
+            "prompt": r["prompt"],
+            "response": r["response"],
+            "mood": r["mood"],
+            "sent_at": r["sent_at"],
+            "responded_at": r["responded_at"],
+            "goal1_clarity": r["goal1_clarity"],
+            "goal1_done_today": bool(r["goal1_done_today"]) if r["goal1_done_today"] is not None else None,
+            "goal1_good": r["goal1_good"],
+            "goal1_bad": r["goal1_bad"],
+            "goal2_clarity": r["goal2_clarity"],
+            "goal2_done_today": bool(r["goal2_done_today"]) if r["goal2_done_today"] is not None else None,
+            "goal2_good": r["goal2_good"],
+            "goal2_bad": r["goal2_bad"],
+            "goal3_clarity": r["goal3_clarity"],
+            "goal3_done_today": bool(r["goal3_done_today"]) if r["goal3_done_today"] is not None else None,
+            "goal3_good": r["goal3_good"],
+            "goal3_bad": r["goal3_bad"],
+        }
+        for r in rows
+    ]
 
 
 @app.get("/api/today")
