@@ -76,10 +76,16 @@ class TestToday:
         _insert(db_path, sent_at=today, mood="good", response="feeling great")
         resp = client.get("/api/today")
         data = resp.json()
+        assert data["prompt"] == "How are you?"
         assert data["mood"] == "good"
         assert data["response"] == "feeling great"
+        assert data["sent_at"] == today
+        assert data["responded_at"] == today
+        assert data["goals"]["goal1"]["name"] == "AI Expert"
         assert data["goals"]["goal1"]["clarity"] == 7
+        assert data["goals"]["goal2"]["name"] == "Substack and Instagram"
         assert data["goals"]["goal2"]["done_today"] is False
+        assert data["goals"]["goal3"]["name"] == "Health"
         assert data["goals"]["goal3"]["good"] == "ran"
 
     def test_ignores_timed_out(self, client, db_path):
