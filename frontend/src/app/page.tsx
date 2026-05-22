@@ -3,6 +3,7 @@ import { TodayMood } from "@/components/dashboard/today-mood";
 import { Streak } from "@/components/dashboard/streak";
 import { WeeklyMood } from "@/components/dashboard/weekly-mood";
 import { GoalClarity } from "@/components/dashboard/goal-clarity";
+import { MoodChart } from "@/components/dashboard/mood-chart";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export default async function DashboardPage() {
         clarity={stats?.goal_clarity_avg_7d ?? defaultClarity}
         trend={stats?.goal_clarity_trend ?? defaultTrend}
       />
+      <MoodChart weeklyMoods={stats?.weekly_moods ?? emptyWeek} />
     </div>
   );
 }
