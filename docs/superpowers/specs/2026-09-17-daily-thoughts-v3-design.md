@@ -86,6 +86,11 @@ preserve (`data/` was gitignored and never committed).
 
 ### `src/lib/db.ts`
 
+Reads environment variables through `requireEnv`, `requireNumberEnv`, and
+`optionalEnv`. See the Environment section for why the numeric variant exists.
+
+### `src/lib/db.ts`
+
 Owns the Postgres connection and nothing else. Exports a single `sql` client
 from the `postgres` package (postgres.js), cached across warm serverless
 invocations via a module-level singleton so repeated requests reuse one
@@ -207,7 +212,11 @@ Every v2 variable not listed here is removed: `REPLY_TIMEOUT_SECONDS`,
 
 Configuration is read through `src/lib/env.ts`, which throws
 `Missing required environment variable: X` on first access to anything unset or
-empty. Reading through an accessor rather than at module load is deliberate: it
+empty. `TELEGRAM_CHAT_ID` additionally goes through `requireNumberEnv`, which
+throws `Environment variable must be a number: X` on a non-numeric value.
+Without that check a typo would produce `NaN`, and since `chatId !== NaN` is
+true for every id, the webhook would silently drop *every* message while still
+answering `200` — an app that looks healthy and captures nothing. Reading through an accessor rather than at module load is deliberate: it
 lets the webhook tests stub the secret and chat id per case, and an unset
 variable still fails loudly rather than silently comparing against `undefined`.
 
