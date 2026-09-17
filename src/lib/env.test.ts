@@ -37,4 +37,9 @@ describe("optionalEnv", () => {
     vi.stubEnv("SOME_KEY", undefined);
     expect(optionalEnv("SOME_KEY", "fallback")).toBe("fallback");
   });
+
+  it("returns the fallback when set to an empty string", () => {
+    vi.stubEnv("SOME_KEY", "");
+    expect(optionalEnv("SOME_KEY", "fallback")).toBe("fallback");
+  });
 });
