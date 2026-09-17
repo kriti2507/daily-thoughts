@@ -8,14 +8,15 @@ if (!url) {
 }
 
 const schema = await readFile(new URL("../db/schema.sql", import.meta.url), "utf8");
-const sql = postgres(url, { max: 1, prepare: false });
 
+let sql;
 try {
+  sql = postgres(url, { max: 1, prepare: false });
   await sql.unsafe(schema).simple();
   console.log("schema applied");
 } catch (error) {
   console.error("failed to apply schema:", error.message);
   process.exitCode = 1;
 } finally {
-  await sql.end();
+  await sql?.end();
 }
