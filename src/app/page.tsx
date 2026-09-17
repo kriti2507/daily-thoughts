@@ -5,6 +5,8 @@ import { listMessages } from "@/lib/messages";
 
 export const dynamic = "force-dynamic";
 
+// Silently truncates: messages beyond the most recent 100 simply aren't
+// shown. There is deliberately no pagination in this base layer.
 const MESSAGE_LIMIT = 100;
 
 function Notice({ children }: { children: ReactNode }) {

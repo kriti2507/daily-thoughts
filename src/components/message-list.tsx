@@ -1,9 +1,26 @@
 import { optionalEnv } from "@/lib/env";
 import type { Message } from "@/lib/messages";
 
+function resolveTimeZone(): string {
+  const configured = optionalEnv("DISPLAY_TIME_ZONE", "UTC");
+  try {
+    new Date().toLocaleString("en-US", { timeZone: configured });
+    return configured;
+  } catch {
+    console.error(
+      `Invalid DISPLAY_TIME_ZONE ${JSON.stringify(configured)}; falling back to UTC`,
+    );
+    return "UTC";
+  }
+}
+
+// Resolved once at module scope: the zone can't change between renders, and
+// validating inside the per-message map would repeat the work for every row.
+const TIME_ZONE = resolveTimeZone();
+
 function formatTimestamp(date: Date): string {
   return date.toLocaleString("en-US", {
-    timeZone: optionalEnv("DISPLAY_TIME_ZONE", "UTC"),
+    timeZone: TIME_ZONE,
     year: "numeric",
     month: "short",
     day: "numeric",
