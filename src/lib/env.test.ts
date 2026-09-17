@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { optionalEnv, requireEnv } from "@/lib/env";
+import { optionalEnv, requireEnv, requireNumberEnv } from "@/lib/env";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -41,5 +41,31 @@ describe("optionalEnv", () => {
   it("returns the fallback when set to an empty string", () => {
     vi.stubEnv("SOME_KEY", "");
     expect(optionalEnv("SOME_KEY", "fallback")).toBe("fallback");
+  });
+});
+
+describe("requireNumberEnv", () => {
+  it("returns the number when the value is a valid integer", () => {
+    vi.stubEnv("SOME_KEY", "4242");
+    expect(requireNumberEnv("SOME_KEY")).toBe(4242);
+  });
+
+  it("returns a negative number correctly", () => {
+    vi.stubEnv("SOME_KEY", "-1001234567890");
+    expect(requireNumberEnv("SOME_KEY")).toBe(-1001234567890);
+  });
+
+  it("throws a named error when the value is not numeric", () => {
+    vi.stubEnv("SOME_KEY", "not-a-number");
+    expect(() => requireNumberEnv("SOME_KEY")).toThrow(
+      "Environment variable must be a number: SOME_KEY",
+    );
+  });
+
+  it("throws the missing error when unset", () => {
+    vi.stubEnv("SOME_KEY", undefined);
+    expect(() => requireNumberEnv("SOME_KEY")).toThrow(
+      "Missing required environment variable: SOME_KEY",
+    );
   });
 });

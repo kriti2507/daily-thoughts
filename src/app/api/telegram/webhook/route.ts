@@ -1,4 +1,4 @@
-import { requireEnv } from "@/lib/env";
+import { requireEnv, requireNumberEnv } from "@/lib/env";
 import { insertMessage } from "@/lib/messages";
 
 interface TelegramUpdate {
@@ -38,7 +38,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const chatId = message.chat?.id;
-  if (chatId !== Number(requireEnv("TELEGRAM_CHAT_ID"))) {
+  if (chatId !== requireNumberEnv("TELEGRAM_CHAT_ID")) {
     return ok();
   }
 

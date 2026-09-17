@@ -22,6 +22,18 @@ function buildRequest(body: unknown, secret: string | null = SECRET): Request {
   });
 }
 
+function buildRawRequest(body: string, secret: string | null = SECRET): Request {
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  if (secret !== null) {
+    headers["x-telegram-bot-api-secret-token"] = secret;
+  }
+  return new Request("http://localhost/api/telegram/webhook", {
+    method: "POST",
+    headers,
+    body,
+  });
+}
+
 function textUpdate(overrides: Record<string, unknown> = {}) {
   return {
     update_id: 1,
@@ -95,5 +107,21 @@ describe("POST /api/telegram/webhook", () => {
     expect(response.status).toBe(200);
     expect(errorSpy).toHaveBeenCalled();
     errorSpy.mockRestore();
+  });
+
+  it("returns 200 for a malformed JSON body", async () => {
+    const response = await POST(buildRawRequest("not json"));
+
+    expect(response.status).toBe(200);
+    expect(insertMessage).not.toHaveBeenCalled();
+  });
+
+  it("throws rather than silently dropping messages when TELEGRAM_CHAT_ID is not numeric", async () => {
+    vi.stubEnv("TELEGRAM_CHAT_ID", "not-a-number");
+
+    await expect(POST(buildRequest(textUpdate()))).rejects.toThrow(
+      "Environment variable must be a number: TELEGRAM_CHAT_ID",
+    );
+    expect(insertMessage).not.toHaveBeenCalled();
   });
 });
