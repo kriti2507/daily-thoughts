@@ -141,9 +141,12 @@ presentation are future work and are not designed here.
 
 Depends on: `src/lib/messages.ts`.
 
-### `scripts/set-webhook.ts`
+### `scripts/set-webhook.mjs`
 
-`npm run webhook:set <https://your-app.vercel.app>` calls Telegram's
+Plain JavaScript rather than TypeScript, so `node --env-file=.env` runs it with
+no build step or extra dependency on Node 20.
+
+`npm run webhook:set -- <https://your-app.vercel.app>` calls Telegram's
 `setWebhook` with that URL plus the `secret_token` from `.env`, and prints the
 response. Re-runnable whenever the deployment URL changes.
 
@@ -170,16 +173,17 @@ refers to the post-move Next.js tree unless it is explicitly labelled Python.
 | `goals.md` | Goals were input to the deleted LLM prompt. |
 | `src/components/dashboard/*` (6 cards) | Mood, streak, weekly grid, goal clarity, chart, recent entries — all derived from deleted categorization data. |
 | `src/lib/api.ts` | Fetched the deleted FastAPI endpoints. |
-| `src/components/ui/progress.tsx`, `badge.tsx` | Only used by deleted dashboard cards. |
+| `src/components/ui/progress.tsx`, `badge.tsx`, `button.tsx`, `card.tsx` | All four are dead code: a grep of the app shows none of them is imported anywhere, even today. |
 
 `recharts` and any other dependency left with no importer is dropped from
 `package.json`.
 
 ### Kept
 
-The layout shell (`layout.tsx`), theme provider and toggle, `globals.css` with
-its existing warm/amber palette, and `card.tsx`. The visual language carries
-over; only the content changes.
+The layout shell (`layout.tsx`), theme provider and toggle, `lib/utils.ts`, and
+`globals.css` with its existing warm/amber palette. The visual language carries
+over; only the content changes. The message list styles itself from the same CSS
+variables, so it needs no component library.
 
 ### Rewritten
 
@@ -195,13 +199,23 @@ exist in v3.
 | `TELEGRAM_BOT_TOKEN` | Used by `set-webhook`. |
 | `TELEGRAM_CHAT_ID` | The only chat whose messages are stored. |
 | `TELEGRAM_WEBHOOK_SECRET` | Random string; verified on every webhook request. |
+| `DISPLAY_TIME_ZONE` | Optional IANA zone for rendered timestamps. Defaults to `UTC`. |
 
 Every v2 variable not listed here is removed: `REPLY_TIMEOUT_SECONDS`,
 `DB_PATH`, `GOALS_PATH`, `HISTORY_DAYS`, `LLM_PROVIDER`, `LLM_MODEL`,
 `ANTHROPIC_API_KEY`.
 
-Missing configuration fails loudly at module load rather than silently
-mis-behaving at request time.
+Configuration is read through `src/lib/env.ts`, which throws
+`Missing required environment variable: X` on first access to anything unset or
+empty. Reading through an accessor rather than at module load is deliberate: it
+lets the webhook tests stub the secret and chat id per case, and an unset
+variable still fails loudly rather than silently comparing against `undefined`.
+
+`DISPLAY_TIME_ZONE` exists because a Vercel function's clock is UTC, so
+formatting timestamps in the server's local zone would display the wrong time.
+Formatting server-side against an explicit zone keeps the page free of client
+JavaScript and avoids a hydration mismatch. Moving formatting to the viewer's
+own locale is reasonable later work.
 
 ## Error handling
 
