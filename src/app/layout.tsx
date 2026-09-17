@@ -24,7 +24,7 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   title: "Daily Thoughts",
-  description: "Your personal reflection dashboard",
+  description: "Thoughts sent to a Telegram bot, collected on one page",
 };
 
 function HeaderDate() {

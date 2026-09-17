@@ -43,10 +43,13 @@ Work through it in this order:
 3. A `500` in those logs, with `Environment variable must be a number:
    TELEGRAM_CHAT_ID` — `TELEGRAM_CHAT_ID` is set to something non-numeric.
    Alarming-looking, one-line fix: correct the value in the Vercel environment.
-4. `failed to store telegram message` in the logs — the handler ran but the
+4. A `500` with `Missing required environment variable:
+   TELEGRAM_WEBHOOK_SECRET` (or any other name) — that variable is unset in the
+   Vercel environment. Every webhook call fails until it is set.
+5. `failed to store telegram message` in the logs — the handler ran but the
    database rejected the write. That message is lost by design; the handler
    returns `200` rather than letting Telegram retry indefinitely.
-5. Messages sent from a chat other than `TELEGRAM_CHAT_ID` are dropped
+6. Messages sent from a chat other than `TELEGRAM_CHAT_ID` are dropped
    silently, by design.
 
 ## Re-applying the schema
