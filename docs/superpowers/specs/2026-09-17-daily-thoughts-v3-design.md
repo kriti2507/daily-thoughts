@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS messages (
   UNIQUE (chat_id, telegram_id)
 );
 
-CREATE INDEX IF NOT EXISTS messages_sent_at_idx ON messages (sent_at DESC);
+CREATE INDEX IF NOT EXISTS messages_sent_at_idx ON messages (sent_at DESC, id DESC);
 ```
 
 - **`sent_at`** is derived from Telegram's `message.date` (a Unix timestamp), not

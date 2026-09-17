@@ -248,8 +248,10 @@ CREATE TABLE IF NOT EXISTS messages (
   UNIQUE (chat_id, telegram_id)
 );
 
-CREATE INDEX IF NOT EXISTS messages_sent_at_idx ON messages (sent_at DESC);
+CREATE INDEX IF NOT EXISTS messages_sent_at_idx ON messages (sent_at DESC, id DESC);
 ```
+
+`id` is in the index as a tiebreaker, not decoration. Telegram's `message.date` has one-second resolution, so two messages sent in the same second share a `sent_at`. Ordering by `sent_at` alone leaves tied rows in an undefined order, which lets the list shuffle between page loads and lets rows drift in and out of the `LIMIT 100` window. Task 6's `listMessages` orders by `sent_at DESC, id DESC` to match.
 
 - [ ] **Step 3: Write `scripts/db-init.mjs`**
 
@@ -482,6 +484,8 @@ The only module that writes SQL. Keeping both queries here means the route handl
 
 `id` is a `BIGSERIAL`, which postgres.js returns as a string to avoid precision loss; it is converted to a number for the React `key`. `sent_at` is a `TIMESTAMPTZ` and comes back as a `Date`.
 
+The `ORDER BY` includes `id DESC` as a tiebreaker because Telegram timestamps have one-second resolution — two messages sent in the same second would otherwise come back in an undefined order. It matches the `(sent_at DESC, id DESC)` index from Task 3.
+
 ```ts
 import { getSql } from "@/lib/db";
 
@@ -512,7 +516,7 @@ export async function listMessages(limit: number): Promise<Message[]> {
   const rows = await sql<{ id: string; text: string; sent_at: Date }[]>`
     SELECT id, text, sent_at
     FROM messages
-    ORDER BY sent_at DESC
+    ORDER BY sent_at DESC, id DESC
     LIMIT ${limit}
   `;
   return rows.map((row) => ({
