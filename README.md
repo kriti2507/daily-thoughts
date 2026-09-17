@@ -37,10 +37,15 @@ curl -X POST localhost:3000/api/telegram/webhook \
   -d '{"message":{"message_id":1,"date":1757000000,"text":"hello","chat":{"id":YOUR_CHAT_ID}}}'
 ```
 
+Replace `YOUR_CHAT_ID` with the numeric id from step 2. Left as-is the body is
+invalid JSON, and the handler answers `200` without storing anything — every
+ignore path returns `200` so that Telegram stops retrying, so a `200` here is
+not by itself proof the message landed.
+
 ## Deploying
 
-Deploy to Vercel, set the four environment variables in the project settings,
-then register the webhook against the deployed URL:
+Deploy to Vercel, set the four required environment variables in the project
+settings, then register the webhook against the deployed URL:
 
 ```bash
 npm run webhook:set -- https://your-app.vercel.app
