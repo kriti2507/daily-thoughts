@@ -1,11 +1,28 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-.pytest_cache/
-.venv/
-venv/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
 
-# Project
-.env
-data/
+# next.js
+/.next/
+/out/
+/build
+
+# testing
+/coverage
+
+# env files
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
