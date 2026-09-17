@@ -1,49 +1,63 @@
 # daily-thoughts
 
-A small cron-triggered script that posts a prompt to a Telegram chat, waits
-for your reply, and stores the prompt/reply in a local SQLite database.
+Write a message to your Telegram bot; it shows up on your page.
+
+Telegram POSTs each message to a Next.js route, which stores it in Postgres.
+The main page reads Postgres. No cron, no polling, no background process.
 
 ## Setup
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-# edit .env with your bot token, chat id, etc.
-```
+1. Create a bot with [@BotFather](https://t.me/botfather) and copy the token.
+2. Message the bot once, then open
+   `https://api.telegram.org/bot<TOKEN>/getUpdates` to find your `chat.id`.
+3. Create a Postgres database (Neon, Supabase, or local).
+4. Copy `.env.example` to `.env` and fill it in. Generate the webhook secret
+   with `openssl rand -hex 32`.
+5. Install and initialise:
 
-### Getting your bot token and chat id
+   ```bash
+   npm install
+   npm run db:init
+   ```
 
-1. Talk to `@BotFather` on Telegram, create a bot, copy the token into
-   `TELEGRAM_BOT_TOKEN`.
-2. Start a chat with your bot (send it any message), then visit
-   `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates` to find your
-   `chat.id`. Put that into `TELEGRAM_CHAT_ID`.
-
-## Running once (manual)
+## Running locally
 
 ```bash
-python -m src.main
+npm run dev
 ```
 
-The bot posts the generated prompt, then waits up to
-`REPLY_TIMEOUT_SECONDS` for you to **reply** to that message in Telegram
-(tap-and-hold → Reply). The result is written to `data/thoughts.db`.
+Telegram cannot reach `localhost`, so to exercise the webhook locally either
+expose the port (`ngrok http 3000`) and point the webhook at that URL, or POST
+an update yourself:
 
-## Scheduling via cron
-
-Example crontab line (runs daily at 9:00 AM):
-
-```cron
-0 9 * * * cd /absolute/path/to/daily-thoughts && /absolute/path/to/.venv/bin/python -m src.main
+```bash
+curl -X POST localhost:3000/api/telegram/webhook \
+  -H "content-type: application/json" \
+  -H "x-telegram-bot-api-secret-token: $TELEGRAM_WEBHOOK_SECRET" \
+  -d '{"message":{"message_id":1,"date":1757000000,"text":"hello","chat":{"id":YOUR_CHAT_ID}}}'
 ```
 
-Edit your crontab with `crontab -e`. Cron mails stderr to your local
-user, so errors surface naturally.
+## Deploying
+
+Deploy to Vercel, set the four environment variables in the project settings,
+then register the webhook against the deployed URL:
+
+```bash
+npm run webhook:set -- https://your-app.vercel.app
+```
 
 ## Tests
 
 ```bash
-python -m pytest
+npm test
 ```
+
+## Configuration
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL` | yes | Postgres connection string. |
+| `TELEGRAM_BOT_TOKEN` | yes | Used by `webhook:set`. |
+| `TELEGRAM_CHAT_ID` | yes | The only chat whose messages are stored. Must be numeric. |
+| `TELEGRAM_WEBHOOK_SECRET` | yes | Verified on every webhook request. |
+| `DISPLAY_TIME_ZONE` | no | IANA zone for timestamps. Defaults to `UTC`; an invalid zone falls back to `UTC` with a logged warning. |
