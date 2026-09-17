@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:init": "node --env-file=.env scripts/db-init.mjs",
+    "webhook:set": "node --env-file=.env scripts/set-webhook.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
