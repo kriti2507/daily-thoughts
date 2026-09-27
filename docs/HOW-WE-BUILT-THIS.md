@@ -4,7 +4,7 @@ A meta-document on how `daily-thoughts` was built end-to-end using Claude Code a
 
 ## TL;DR
 
-The pattern that worked was a **3-stage workflow per version**, repeated for v1 and v2:
+The pattern that worked was a **3-stage workflow per version**, repeated for v1, v2 and v3:
 
 1. **Brainstorm** — clarify the design through one-question-at-a-time dialogue
 2. **Plan** — turn the design into a TDD task list
@@ -12,7 +12,7 @@ The pattern that worked was a **3-stage workflow per version**, repeated for v1 
 
 Each stage maps to one Superpowers skill. Your job is mostly answering questions honestly and picking when offered choices. The skills drive the structure.
 
-End-to-end, both versions together took roughly an hour of conversation, with the heavy lifting happening in background subagent dispatches.
+End-to-end, v1 and v2 together took roughly an hour of conversation, with the heavy lifting happening in background subagent dispatches.
 
 ## Prompts to write (in order)
 
@@ -67,6 +67,9 @@ All are part of the Superpowers plugin in Claude Code. Listed under `/skills`.
 
 ## System design that emerged
 
+v1 and v2 were Python and have since been removed; they are kept here as
+history. v3 is what the repository contains today.
+
 ### v1 — minimal viable loop
 
 - Cron triggers `python -m src.main` on a schedule
@@ -94,6 +97,14 @@ Extends v1 with:
 - `db.fetch_recent_replied(days=7)` feeds the LLM history
 - Failure modes: `generate_question` fails → skip the run (exit 0); `categorize` fails → keep the row, NULL categories
 
+### v3 — message in, message out (current)
+
+Replaces everything above with one Next.js app on Vercel, backed by Postgres:
+
+- Telegram POSTs each message to `/api/telegram/webhook`, which verifies the shared secret, filters to the owner's chat, and inserts the message
+- The main page is a server component that reads recent messages from Postgres
+- No cron, no polling, no LLM, no background process
+
 ## Practical tips
 
 - **Don't pre-specify too much.** A one-paragraph intent is enough. Front-loading decisions skips the dialogue and locks in unexamined assumptions.
@@ -107,13 +118,9 @@ Extends v1 with:
 
 You can read the actual outputs of each stage in this repo:
 
-- Specs: `docs/superpowers/specs/`
-  - `2026-05-16-daily-thoughts-design.md` (v1)
-  - `2026-05-16-daily-thoughts-v2-design.md` (v2)
-- Plans: `docs/superpowers/plans/`
-  - `2026-05-16-daily-thoughts-v1.md`
-  - `2026-05-16-daily-thoughts-v2.md`
+- Spec: `docs/superpowers/specs/2026-09-17-daily-thoughts-v3-design.md`
+- Plan: `docs/superpowers/plans/2026-09-17-daily-thoughts-v3.md`
 - Implementation: `src/`
 - Operational manual: `manual.md`
 
-The `git log` between the v1 spec commit and the v1 final-review commit (and similarly for v2) shows the per-task commits that subagents produced.
+The v1 and v2 specs and plans were removed from the tree once v3 superseded them; they are still in `git log`, alongside the per-task commits that subagents produced for each version.

@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-17
 **Status:** Approved
-**Supersedes:** [v2 design](2026-05-16-daily-thoughts-v2-design.md)
+**Supersedes:** v2 design (removed; see git history)
 
 ## Summary
 
