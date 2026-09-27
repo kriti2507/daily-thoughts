@@ -51,6 +51,14 @@ settings, then register the webhook against the deployed URL:
 npm run webhook:set -- https://your-app.vercel.app
 ```
 
+## Deleting messages
+
+Set `ADMIN_SECRET` (e.g. `openssl rand -hex 32`), then visit
+`/admin?key=<ADMIN_SECRET>` once in your browser. That sets a cookie, and a
+delete button appears on each message. Deleting removes the row from Postgres
+permanently. Without the cookie the page stays read-only; with `ADMIN_SECRET`
+unset, deleting is off entirely. Rotating the secret signs out every browser.
+
 ## Tests
 
 ```bash
@@ -65,4 +73,5 @@ npm test
 | `TELEGRAM_BOT_TOKEN` | yes | Used by `webhook:set`. |
 | `TELEGRAM_CHAT_ID` | yes | The only chat whose messages are stored. Must be numeric. |
 | `TELEGRAM_WEBHOOK_SECRET` | yes | Verified on every webhook request. |
+| `ADMIN_SECRET` | no | Enables deleting messages from the page. See [Deleting messages](#deleting-messages). |
 | `DISPLAY_TIME_ZONE` | no | IANA zone for timestamps. Defaults to `UTC`; an invalid zone falls back to `UTC` with a logged warning. |

@@ -1,3 +1,4 @@
+import { DeleteMessageButton } from "@/components/delete-message-button";
 import { optionalEnv } from "@/lib/env";
 import type { Message } from "@/lib/messages";
 
@@ -29,7 +30,13 @@ function formatTimestamp(date: Date): string {
   });
 }
 
-export function MessageList({ messages }: { messages: Message[] }) {
+export function MessageList({
+  messages,
+  canDelete,
+}: {
+  messages: Message[];
+  canDelete: boolean;
+}) {
   return (
     <ul className="flex flex-col gap-3">
       {messages.map((message) => (
@@ -37,12 +44,15 @@ export function MessageList({ messages }: { messages: Message[] }) {
           key={message.id}
           className="rounded-xl border border-[var(--border)] bg-card px-5 py-4"
         >
-          <time
-            dateTime={message.sentAt.toISOString()}
-            className="text-[13px] font-medium text-[var(--text-muted)]"
-          >
-            {formatTimestamp(message.sentAt)}
-          </time>
+          <div className="flex items-center justify-between gap-3">
+            <time
+              dateTime={message.sentAt.toISOString()}
+              className="text-[13px] font-medium text-[var(--text-muted)]"
+            >
+              {formatTimestamp(message.sentAt)}
+            </time>
+            {canDelete && <DeleteMessageButton id={message.id} />}
+          </div>
           <p className="mt-1.5 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">
             {message.text}
           </p>

@@ -22,6 +22,11 @@ export async function insertMessage(message: NewMessage): Promise<void> {
   `;
 }
 
+export async function deleteMessage(id: number): Promise<void> {
+  const sql = getSql();
+  await sql`DELETE FROM messages WHERE id = ${id}`;
+}
+
 export async function listMessages(limit: number): Promise<Message[]> {
   const sql = getSql();
   const rows = await sql<{ id: string; text: string; sent_at: Date }[]>`
