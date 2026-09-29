@@ -1,6 +1,6 @@
 import { DeleteMessageButton } from "@/components/delete-message-button";
 import { optionalEnv } from "@/lib/env";
-import type { Message } from "@/lib/messages";
+import type { Message, MessageSource } from "@/lib/messages";
 
 function resolveTimeZone(): string {
   const configured = optionalEnv("DISPLAY_TIME_ZONE", "UTC");
@@ -30,6 +30,11 @@ function formatTimestamp(date: Date): string {
   });
 }
 
+const SOURCE_LABELS: Record<MessageSource, string> = {
+  telegram: "Telegram",
+  web: "web",
+};
+
 export function MessageList({
   messages,
   canDelete,
@@ -45,12 +50,12 @@ export function MessageList({
           className="rounded-xl border border-[var(--border)] bg-card px-5 py-4"
         >
           <div className="flex items-center justify-between gap-3">
-            <time
-              dateTime={message.sentAt.toISOString()}
-              className="text-[13px] font-medium text-[var(--text-muted)]"
-            >
-              {formatTimestamp(message.sentAt)}
-            </time>
+            <div className="flex items-baseline gap-1.5 text-[13px] font-medium text-[var(--text-muted)]">
+              <time dateTime={message.sentAt.toISOString()}>
+                {formatTimestamp(message.sentAt)}
+              </time>
+              <span>· via {SOURCE_LABELS[message.source]}</span>
+            </div>
             {canDelete && <DeleteMessageButton id={message.id} />}
           </div>
           <p className="mt-1.5 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">

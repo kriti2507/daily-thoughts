@@ -34,7 +34,10 @@ export default async function HomePage() {
           Couldn&apos;t reach the database. Check <code>DATABASE_URL</code>.
         </Notice>
       ) : messages.length === 0 ? (
-        <Notice>Nothing here yet — send your bot a message on Telegram.</Notice>
+        <Notice>
+          Nothing here yet — send your bot a message on Telegram, or write one
+          here.
+        </Notice>
       ) : (
         <MessageList messages={messages} canDelete={canDelete} />
       )}
