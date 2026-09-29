@@ -8,7 +8,7 @@ function digest(value: string): Buffer {
 }
 
 /**
- * With ADMIN_SECRET unset, nothing is accepted — deleting is simply off, rather
+ * With ADMIN_SECRET unset, nothing is accepted — writing and deleting are simply off, rather
  * than an empty cookie matching an empty secret. Both sides are hashed first so
  * `timingSafeEqual` always compares equal-length buffers and the comparison
  * leaks neither the secret nor its length.

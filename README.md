@@ -51,6 +51,11 @@ settings, then register the webhook against the deployed URL:
 npm run webhook:set -- https://your-app.vercel.app
 ```
 
+When upgrading an existing deployment, run `npm run db:init` against the
+production `DATABASE_URL` **before** deploying the new code. It's idempotent,
+and the old code keeps working on the new schema. The reverse order breaks:
+new code on the old schema silently drops incoming Telegram messages.
+
 ## Writing and deleting from the page
 
 Set `ADMIN_SECRET` (e.g. `openssl rand -hex 32`), then visit
