@@ -3,7 +3,9 @@ import { Quicksand, Inter, Caveat } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ComposeDialog } from "@/components/compose-dialog";
 import { MessageCircle } from "lucide-react";
+import { isAdmin } from "@/lib/admin";
 
 const quicksand = Quicksand({
   variable: "--font-heading",
@@ -37,11 +39,13 @@ function HeaderDate() {
   return <span className="text-[13px] text-[var(--text-secondary)] font-medium">{formatted}</span>;
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const canWrite = await isAdmin();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -57,6 +61,7 @@ export default function RootLayout({
             </div>
             <div className="flex items-center gap-4">
               <HeaderDate />
+              {canWrite && <ComposeDialog />}
               <ThemeToggle />
             </div>
           </header>

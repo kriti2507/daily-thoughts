@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { MessageList } from "@/components/message-list";
+import { isAdmin } from "@/lib/admin";
 import { listMessages } from "@/lib/messages";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,8 @@ export default async function HomePage() {
     console.error("failed to load messages", error);
   }
 
+  const canDelete = await isAdmin();
+
   return (
     <div className="mx-auto max-w-[720px] px-6 py-10">
       {messages === null ? (
@@ -31,9 +34,12 @@ export default async function HomePage() {
           Couldn&apos;t reach the database. Check <code>DATABASE_URL</code>.
         </Notice>
       ) : messages.length === 0 ? (
-        <Notice>Nothing here yet — send your bot a message on Telegram.</Notice>
+        <Notice>
+          Nothing here yet — send your bot a message on Telegram, or write one
+          here.
+        </Notice>
       ) : (
-        <MessageList messages={messages} />
+        <MessageList messages={messages} canDelete={canDelete} />
       )}
     </div>
   );

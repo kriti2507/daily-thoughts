@@ -1,6 +1,6 @@
 # daily-thoughts
 
-Write a message to your Telegram bot; it shows up on your page.
+Write a message to your Telegram bot, or on the page itself; it shows up on your page.
 
 Telegram POSTs each message to a Next.js route, which stores it in Postgres.
 The main page reads Postgres. No cron, no polling, no background process.
@@ -51,6 +51,21 @@ settings, then register the webhook against the deployed URL:
 npm run webhook:set -- https://your-app.vercel.app
 ```
 
+When upgrading an existing deployment, run `npm run db:init` against the
+production `DATABASE_URL` **before** deploying the new code. It's idempotent,
+and the old code keeps working on the new schema. The reverse order breaks:
+new code on the old schema silently drops incoming Telegram messages.
+
+## Writing and deleting from the page
+
+Set `ADMIN_SECRET` (e.g. `openssl rand -hex 32`), then visit
+`/admin?key=<ADMIN_SECRET>` once in your browser. That sets a cookie, and with
+it a **New entry** button appears in the header and a delete button on each
+message. Entries written on the page are stored alongside Telegram ones and
+labelled "via web". Deleting removes the row from Postgres permanently. Without
+the cookie the page stays read-only; with `ADMIN_SECRET` unset, both are off
+entirely. Rotating the secret signs out every browser.
+
 ## Tests
 
 ```bash
@@ -65,4 +80,5 @@ npm test
 | `TELEGRAM_BOT_TOKEN` | yes | Used by `webhook:set`. |
 | `TELEGRAM_CHAT_ID` | yes | The only chat whose messages are stored. Must be numeric. |
 | `TELEGRAM_WEBHOOK_SECRET` | yes | Verified on every webhook request. |
+| `ADMIN_SECRET` | no | Enables writing and deleting from the page. See [Writing and deleting from the page](#writing-and-deleting-from-the-page). |
 | `DISPLAY_TIME_ZONE` | no | IANA zone for timestamps. Defaults to `UTC`; an invalid zone falls back to `UTC` with a logged warning. |
