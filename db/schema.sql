@@ -9,3 +9,10 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 
 CREATE INDEX IF NOT EXISTS messages_sent_at_idx ON messages (sent_at DESC, id DESC);
+
+-- Web entries have no Telegram ids; `source` tells the two inputs apart.
+-- Idempotent, so `npm run db:init` upgrades an existing table in place.
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'telegram'
+  CHECK (source IN ('telegram', 'web'));
+ALTER TABLE messages ALTER COLUMN telegram_id DROP NOT NULL;
+ALTER TABLE messages ALTER COLUMN chat_id DROP NOT NULL;
