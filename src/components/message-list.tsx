@@ -1,30 +1,12 @@
 import { DeleteMessageButton } from "@/components/delete-message-button";
-import { optionalEnv } from "@/lib/env";
+import { TIME_ZONE } from "@/lib/days";
 import type { Message, MessageSource } from "@/lib/messages";
 
-function resolveTimeZone(): string {
-  const configured = optionalEnv("DISPLAY_TIME_ZONE", "UTC");
-  try {
-    new Date().toLocaleString("en-US", { timeZone: configured });
-    return configured;
-  } catch {
-    console.error(
-      `Invalid DISPLAY_TIME_ZONE ${JSON.stringify(configured)}; falling back to UTC`,
-    );
-    return "UTC";
-  }
-}
-
-// Resolved once at module scope: the zone can't change between renders, and
-// validating inside the per-message map would repeat the work for every row.
-const TIME_ZONE = resolveTimeZone();
-
+// The list now shows a single day under a date heading, so only the time is
+// needed here.
 function formatTimestamp(date: Date): string {
-  return date.toLocaleString("en-US", {
+  return date.toLocaleTimeString("en-US", {
     timeZone: TIME_ZONE,
-    year: "numeric",
-    month: "short",
-    day: "numeric",
     hour: "numeric",
     minute: "2-digit",
   });
