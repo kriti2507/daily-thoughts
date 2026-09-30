@@ -60,11 +60,12 @@ export function MonthCalendar({
                 key={day}
                 href={`/?day=${day}`}
                 prefetch={false}
-                aria-current={day === selectedDay ? "date" : undefined}
-                aria-label={`${formatDayHeading(day)}${marked.has(day) ? ", has entries" : ""}`}
+                aria-current={day === selectedDay ? "page" : undefined}
+                aria-label={`${formatDayHeading(day)}${day === today ? ", today" : ""}${marked.has(day) ? ", has entries" : ""}`}
                 className={cn(
                   "flex h-9 flex-col items-center justify-center rounded-md text-[13px] transition-colors duration-200 hover:bg-[var(--border)]",
-                  day === today && "font-bold text-[var(--accent-terracotta)]",
+                  day === today &&
+                    "font-bold text-[var(--accent-terracotta)] underline underline-offset-4",
                   day === selectedDay &&
                     "bg-foreground text-[var(--background)] hover:bg-foreground",
                 )}
@@ -73,7 +74,13 @@ export function MonthCalendar({
                 <span
                   aria-hidden
                   className={cn(
-                    "h-1 w-1 rounded-full bg-[var(--accent-amber)]",
+                    "h-1 w-1 rounded-full",
+                    // Amber fails contrast against the selected cell's own
+                    // background in dark mode, so swap to the background
+                    // colour there to keep the dot visible.
+                    day === selectedDay && marked.has(day)
+                      ? "bg-[var(--background)]"
+                      : "bg-[var(--accent-amber)]",
                     !marked.has(day) && "invisible",
                   )}
                 />

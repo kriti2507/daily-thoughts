@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 
@@ -8,12 +9,16 @@ import { saveCheckinAction } from "@/app/checkin-actions";
 
 type Status = "idle" | "saved" | "day-ended" | "questions-changed" | "error";
 
+// idle is deliberately empty: the live region below only ever announces a
+// save result, never the static hint.
 const STATUS_TEXT: Record<Status, string> = {
-  idle: "⌘/Ctrl + Enter to save",
+  idle: "",
   saved: "Saved",
+  // The drafts survive only until the next revalidation remounts this form
+  // under the new day's key (e.g. the midnight rollover) — an accepted
+  // limitation, since there's nowhere else to keep them once that happens.
   "day-ended": "This day has ended. Your drafts are still here. Copy them, then refresh.",
-  "questions-changed":
-    "Your questions changed since this page loaded. Copy your drafts, then refresh.",
+  "questions-changed": "Your questions changed. The form is updated; review and save again.",
   error: "Couldn't save the check-in.",
 };
 
@@ -31,6 +36,7 @@ export function CheckinForm({
   );
   const [status, setStatus] = useState<Status>("idle");
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   if (questions.length === 0) {
     return (
@@ -53,13 +59,26 @@ export function CheckinForm({
     if (isPending) {
       return;
     }
+    // Cleared up front so the live region always transitions through empty:
+    // saving twice in a row still announces "Saved" the second time.
+    setStatus("idle");
     startTransition(async () => {
       try {
         const result = await saveCheckinAction(
           day,
           questions.map((q) => ({ questionId: q.id, text: drafts[q.id] ?? "" })),
         );
-        setStatus(result.ok ? "saved" : result.reason);
+        if (result.ok) {
+          setStatus("saved");
+        } else if (result.reason === "questions-changed") {
+          setStatus("questions-changed");
+          // Component state (drafts, status) survives a router refresh — only
+          // the day changing remounts this form under a new key — so this
+          // picks up the current question set without losing what's typed.
+          router.refresh();
+        } else {
+          setStatus(result.reason);
+        }
       } catch (error) {
         // Keep the drafts: nothing typed should be lost to a failed save.
         console.error("failed to save check-in", error);
@@ -83,6 +102,7 @@ export function CheckinForm({
   return (
     <form
       onSubmit={handleSubmit}
+      aria-labelledby="checkin-heading"
       className="flex flex-col gap-4 rounded-xl border border-[var(--border)] bg-card px-5 py-4"
     >
       {questions.map((q) => (
@@ -103,8 +123,9 @@ export function CheckinForm({
         </div>
       ))}
       <div className="flex items-center justify-end gap-2">
-        <span role="status" className="mr-auto text-[12px] text-[var(--text-muted)]">
-          {STATUS_TEXT[status]}
+        <span className="mr-auto flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
+          <span>⌘/Ctrl + Enter to save</span>
+          <span role="status">{STATUS_TEXT[status]}</span>
         </span>
         <button
           type="submit"

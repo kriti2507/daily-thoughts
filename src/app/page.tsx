@@ -18,9 +18,12 @@ function Notice({ children }: { children: ReactNode }) {
   );
 }
 
-function SectionTitle({ children }: { children: ReactNode }) {
+function SectionTitle({ children, id }: { children: ReactNode; id?: string }) {
   return (
-    <h2 className="text-[13px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+    <h2
+      id={id}
+      className="text-[13px] font-semibold uppercase tracking-wide text-[var(--text-muted)]"
+    >
       {children}
     </h2>
   );
@@ -74,7 +77,7 @@ export default async function HomePage({
 
             {isOwner && (
               <div className="flex flex-col gap-3">
-                <SectionTitle>Check-in</SectionTitle>
+                <SectionTitle id="checkin-heading">Check-in</SectionTitle>
                 {day === todayDay ? (
                   <CheckinForm
                     key={day}
