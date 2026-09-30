@@ -47,18 +47,25 @@ export default async function QuestionsPage() {
         </p>
       </div>
 
-      <ol className="flex flex-col gap-2">
-        {active.map((q, index) => (
-          <li key={q.id}>
-            <QuestionEditor
-              id={q.id}
-              text={q.text}
-              isFirst={index === 0}
-              isLast={index === active.length - 1}
-            />
-          </li>
-        ))}
-      </ol>
+      {active.length === 0 ? (
+        <p className="text-[15px] text-[var(--text-secondary)]">
+          No active questions. Add one below.
+        </p>
+      ) : (
+        <ol className="flex flex-col gap-2">
+          {active.map((q, index) => (
+            <li key={q.id}>
+              <QuestionEditor
+                id={q.id}
+                text={q.text}
+                number={index + 1}
+                isFirst={index === 0}
+                isLast={index === active.length - 1}
+              />
+            </li>
+          ))}
+        </ol>
+      )}
 
       <AddQuestionForm />
 

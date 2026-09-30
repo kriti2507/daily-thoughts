@@ -59,11 +59,13 @@ function useAction() {
 export function QuestionEditor({
   id,
   text,
+  number,
   isFirst,
   isLast,
 }: {
   id: number;
   text: string;
+  number: number;
   isFirst: boolean;
   isLast: boolean;
 }) {
@@ -94,7 +96,7 @@ export function QuestionEditor({
       <input
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
-        aria-label="Question"
+        aria-label={`Question ${number}`}
         maxLength={500}
         readOnly={isPending}
         className={INPUT}
@@ -105,20 +107,20 @@ export function QuestionEditor({
         </button>
       )}
       <IconButton
-        label="Move up"
+        label={`Move question ${number} up`}
         disabled={isFirst || isPending}
         onClick={() => run(() => moveQuestionAction(id, "up"), "Couldn't move the question.")}
       >
         <ArrowUp className="h-3.5 w-3.5" />
       </IconButton>
       <IconButton
-        label="Move down"
+        label={`Move question ${number} down`}
         disabled={isLast || isPending}
         onClick={() => run(() => moveQuestionAction(id, "down"), "Couldn't move the question.")}
       >
         <ArrowDown className="h-3.5 w-3.5" />
       </IconButton>
-      <IconButton label="Retire question" disabled={isPending} onClick={retire}>
+      <IconButton label={`Retire question ${number}`} disabled={isPending} onClick={retire}>
         <Archive className="h-3.5 w-3.5" />
       </IconButton>
     </form>

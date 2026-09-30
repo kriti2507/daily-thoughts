@@ -39,7 +39,11 @@ function HeaderDate() {
     month: "long",
     day: "numeric",
   });
-  return <span className="text-[13px] text-[var(--text-secondary)] font-medium">{formatted}</span>;
+  return (
+    <span className="hidden sm:inline text-[13px] text-[var(--text-secondary)] font-medium">
+      {formatted}
+    </span>
+  );
 }
 
 export default async function RootLayout({
@@ -55,7 +59,7 @@ export default async function RootLayout({
         className={`${quicksand.variable} ${inter.variable} ${caveat.variable} antialiased`}
       >
         <ThemeProvider>
-          <header className="flex items-center justify-between px-10 py-5 border-b border-[var(--border)] sticky top-0 z-10 bg-[var(--background)]/80 backdrop-blur-xl">
+          <header className="flex items-center justify-between px-4 sm:px-10 py-5 border-b border-[var(--border)] sticky top-0 z-10 bg-[var(--background)]/80 backdrop-blur-xl">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-[var(--accent-amber)] to-[var(--accent-terracotta)] flex items-center justify-center shadow-[var(--shadow-md)]">
                 <MessageCircle className="w-5 h-5 text-white" strokeWidth={2} />
