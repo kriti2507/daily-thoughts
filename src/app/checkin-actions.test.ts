@@ -75,6 +75,20 @@ describe("saveCheckinAction", () => {
       "unauthorized",
     );
     expect(upsertAnswer).not.toHaveBeenCalled();
+    expect(deleteAnswer).not.toHaveBeenCalled();
+    expect(listActiveQuestions).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("refuses a non-admin even for a past day (auth comes before the day check)", async () => {
+    vi.mocked(isAdmin).mockResolvedValue(false);
+
+    await expect(
+      saveCheckinAction("2026-09-29", [{ questionId: 1, text: "x" }]),
+    ).rejects.toThrow("unauthorized");
+    expect(upsertAnswer).not.toHaveBeenCalled();
+    expect(deleteAnswer).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("reports a day that is no longer today without writing anything", async () => {
@@ -85,13 +99,27 @@ describe("saveCheckinAction", () => {
     expect(result).toEqual({ ok: false, reason: "day-ended" });
     expect(upsertAnswer).not.toHaveBeenCalled();
     expect(deleteAnswer).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("reports questions that changed without writing anything, for an unknown or retired id", async () => {
+    vi.mocked(isAdmin).mockResolvedValue(true);
+
+    const result = await saveCheckinAction(TODAY, [
+      { questionId: 2, text: "valid" },
+      { questionId: 3, text: "unknown or retired question" },
+    ]);
+
+    expect(result).toEqual({ ok: false, reason: "questions-changed" });
+    expect(upsertAnswer).not.toHaveBeenCalled();
+    expect(deleteAnswer).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("writes nothing if any answer is invalid", async () => {
     vi.mocked(isAdmin).mockResolvedValue(true);
 
     const invalid = [
-      { questionId: 3, text: "unknown or retired question" },
       { questionId: 0, text: "x" },
       { questionId: 1.5, text: "x" },
       { questionId: "1" as unknown as number, text: "x" },
@@ -110,6 +138,22 @@ describe("saveCheckinAction", () => {
 
     expect(upsertAnswer).not.toHaveBeenCalled();
     expect(deleteAnswer).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("refuses a duplicate question id without writing anything", async () => {
+    vi.mocked(isAdmin).mockResolvedValue(true);
+
+    await expect(
+      saveCheckinAction(TODAY, [
+        { questionId: 1, text: "first" },
+        { questionId: 1, text: "second" },
+      ]),
+    ).rejects.toThrow("invalid answers");
+
+    expect(upsertAnswer).not.toHaveBeenCalled();
+    expect(deleteAnswer).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("accepts an answer at exactly the length limit", async () => {
@@ -166,6 +210,8 @@ describe("question actions", () => {
     expect(updateQuestionText).toHaveBeenCalledWith(2, "Reworded?");
     expect(moveQuestion).toHaveBeenCalledWith(2, "down");
     expect(retireQuestion).toHaveBeenCalledWith(2);
+    expect(revalidatePath).toHaveBeenCalledWith("/questions");
+    expect(revalidatePath).toHaveBeenCalledWith("/");
   });
 
   it("refuses ids that are not positive integers and unknown directions", async () => {

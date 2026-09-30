@@ -24,8 +24,12 @@ export interface AnswerInput {
 }
 
 // Returned rather than thrown: Next.js hides thrown messages from the client in
-// production, and the form needs to tell "the day ended" apart from a failure.
-export type SaveCheckinResult = { ok: true } | { ok: false; reason: "day-ended" };
+// production, and the form needs to tell "the day ended" (the day rolled over
+// under the writer) apart from "the questions changed" (a question was reworded,
+// reordered, or retired since the page loaded) apart from any other failure.
+export type SaveCheckinResult =
+  | { ok: true }
+  | { ok: false; reason: "day-ended" | "questions-changed" };
 
 // Server actions are public endpoints: anyone can call them with any argument,
 // whether or not the page rendered a form for them. Hence every check below.
@@ -74,20 +78,29 @@ export async function saveCheckinAction(
     throw new Error("invalid answers");
   }
 
-  const activeIds = new Set((await listActiveQuestions()).map((question) => question.id));
-  // Validate everything before writing anything, so a bad answer can't leave
-  // a half-saved check-in.
+  // Validate shape before writing anything, so a bad answer can't leave a
+  // half-saved check-in. Membership in the active set is checked separately,
+  // below, since that's not malformed input but a race with an edit elsewhere.
+  const seenIds = new Set<number>();
   for (const answer of answers) {
     if (
       typeof answer !== "object" ||
       answer === null ||
       !isId(answer.questionId) ||
-      !activeIds.has(answer.questionId) ||
       typeof answer.text !== "string" ||
-      answer.text.trim().length > MAX_ANSWER_LENGTH
+      answer.text.trim().length > MAX_ANSWER_LENGTH ||
+      seenIds.has(answer.questionId)
     ) {
       throw new Error("invalid answers");
     }
+    seenIds.add(answer.questionId);
+  }
+
+  // Checked only once every answer's shape is known good, so a question
+  // retired or reworded after the page loaded is reported rather than thrown.
+  const activeIds = new Set((await listActiveQuestions()).map((question) => question.id));
+  if (answers.some((answer) => !activeIds.has(answer.questionId))) {
+    return { ok: false, reason: "questions-changed" };
   }
 
   for (const { questionId, text } of answers) {
