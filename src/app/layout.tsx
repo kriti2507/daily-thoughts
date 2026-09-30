@@ -4,8 +4,10 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ComposeDialog } from "@/components/compose-dialog";
-import { MessageCircle } from "lucide-react";
+import Link from "next/link";
+import { ListChecks, MessageCircle } from "lucide-react";
 import { isAdmin } from "@/lib/admin";
+import { TIME_ZONE } from "@/lib/days";
 
 const quicksand = Quicksand({
   variable: "--font-heading",
@@ -32,6 +34,7 @@ export const metadata: Metadata = {
 function HeaderDate() {
   const now = new Date();
   const formatted = now.toLocaleDateString("en-US", {
+    timeZone: TIME_ZONE,
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -53,14 +56,23 @@ export default async function RootLayout({
       >
         <ThemeProvider>
           <header className="flex items-center justify-between px-10 py-5 border-b border-[var(--border)] sticky top-0 z-10 bg-[var(--background)]/80 backdrop-blur-xl">
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-[var(--accent-amber)] to-[var(--accent-terracotta)] flex items-center justify-center shadow-[var(--shadow-md)]">
                 <MessageCircle className="w-5 h-5 text-white" strokeWidth={2} />
               </div>
               <span className="font-heading text-xl font-bold tracking-tight">Daily Thoughts</span>
-            </div>
+            </Link>
             <div className="flex items-center gap-4">
               <HeaderDate />
+              {canWrite && (
+                <Link
+                  href="/questions"
+                  className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[var(--border)] bg-[var(--card)] transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-sm)]"
+                >
+                  <ListChecks className="h-4 w-4 text-[var(--accent-amber)]" />
+                  <span className="sr-only">Questions</span>
+                </Link>
+              )}
               {canWrite && <ComposeDialog />}
               <ThemeToggle />
             </div>
