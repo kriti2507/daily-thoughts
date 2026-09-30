@@ -123,7 +123,7 @@ export function CheckinForm({
         </div>
       ))}
       <div className="flex items-center justify-end gap-2">
-        <span className="mr-auto flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
+        <span className="mr-auto flex flex-wrap items-center gap-x-2 text-[12px] text-[var(--text-muted)]">
           <span>⌘/Ctrl + Enter to save</span>
           <span role="status">{STATUS_TEXT[status]}</span>
         </span>

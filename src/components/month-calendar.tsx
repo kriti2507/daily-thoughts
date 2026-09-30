@@ -65,7 +65,7 @@ export function MonthCalendar({
                 className={cn(
                   "flex h-9 flex-col items-center justify-center rounded-md text-[13px] transition-colors duration-200 hover:bg-[var(--border)]",
                   day === today &&
-                    "font-bold text-[var(--accent-terracotta)] underline underline-offset-4",
+                    "font-bold text-[var(--accent-terracotta)] underline underline-offset-2",
                   day === selectedDay &&
                     "bg-foreground text-[var(--background)] hover:bg-foreground",
                 )}
