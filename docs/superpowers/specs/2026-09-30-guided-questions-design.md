@@ -113,12 +113,16 @@ All re-check `isAdmin()` first and throw `"unauthorized"`, like the existing
 actions. Input is validated because server actions are public endpoints.
 
 ### `saveCheckinAction(day, answers: { questionId, text }[])`
-1. `day` must equal `today()` computed on the server, otherwise throw
-   `"day has ended"`. This rejects crafted requests for past days, and catches a
-   form left open past midnight. The form shows a "refresh to start today's
-   check-in" message in that case, keeping the drafts in place.
-2. Each `questionId` must be an active question. Each `text` is a string of at
-   most 4096 characters, the same cap as thoughts.
+1. `day` must equal `today()` computed on the server, otherwise return
+   `{ ok: false, reason: "day-ended" }` (returned, not thrown, because Next.js
+   hides thrown messages in production). This rejects crafted requests for past
+   days, and catches a form left open past midnight. The form shows a "refresh"
+   message in that case, keeping the drafts in place.
+2. Each answer must have a positive integer `questionId`, no id may repeat, and
+   each `text` is a string of at most 4096 characters, the same cap as thoughts.
+   Otherwise throw `"invalid answers"`. If every answer is well formed but one
+   names a question that isn't active (retired since the page loaded), return
+   `{ ok: false, reason: "questions-changed" }` and write nothing.
 3. For each answer: trimmed non-empty → `upsertAnswer`; empty → `deleteAnswer`.
    Answers for questions not included in the request are left untouched.
 4. `revalidatePath("/")`.

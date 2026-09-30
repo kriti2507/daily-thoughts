@@ -25,8 +25,8 @@ export interface AnswerInput {
 
 // Returned rather than thrown: Next.js hides thrown messages from the client in
 // production, and the form needs to tell "the day ended" (the day rolled over
-// under the writer) apart from "the questions changed" (a question was reworded,
-// reordered, or retired since the page loaded) apart from any other failure.
+// under the writer) and "the questions changed" (a question was retired since
+// the page loaded) apart from any other failure.
 export type SaveCheckinResult =
   | { ok: true }
   | { ok: false; reason: "day-ended" | "questions-changed" };
@@ -97,7 +97,7 @@ export async function saveCheckinAction(
   }
 
   // Checked only once every answer's shape is known good, so a question
-  // retired or reworded after the page loaded is reported rather than thrown.
+  // retired after the page loaded is reported rather than thrown.
   const activeIds = new Set((await listActiveQuestions()).map((question) => question.id));
   if (answers.some((answer) => !activeIds.has(answer.questionId))) {
     return { ok: false, reason: "questions-changed" };
