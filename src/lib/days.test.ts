@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   dayInZone,
@@ -7,8 +7,30 @@ import {
   monthGrid,
   monthRange,
   parseDay,
+  resolveTimeZone,
   shiftMonth,
 } from "@/lib/days";
+
+describe("resolveTimeZone", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns the canonical IANA name", () => {
+    expect(resolveTimeZone("Asia/Tokyo")).toBe("Asia/Tokyo");
+    expect(resolveTimeZone("asia/tokyo")).toBe("Asia/Tokyo");
+  });
+
+  it("rejects offset zones and unknown zones, falling back to UTC", () => {
+    expect(resolveTimeZone("+05:30")).toBe("UTC");
+    expect(resolveTimeZone("-08:00")).toBe("UTC");
+    expect(resolveTimeZone("Not/AZone")).toBe("UTC");
+  });
+});
 
 describe("dayInZone", () => {
   it("uses the zone's date, not UTC's", () => {
@@ -38,6 +60,7 @@ describe("parseDay", () => {
       "2026-09-00",
       "2026-9-30",
       "2026-09-30T00:00",
+      "0050-01-01",
       "",
       undefined,
       ["2026-09-30"],

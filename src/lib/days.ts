@@ -4,11 +4,20 @@ import { optionalEnv } from "@/lib/env";
 // "YYYY-MM-DD" string. Strings rather than Dates, so a day can never be shifted
 // by reading it in the server's own zone (UTC on Vercel).
 
-function resolveTimeZone(): string {
-  const configured = optionalEnv("DISPLAY_TIME_ZONE", "UTC");
+// Newer Node accepts offset zones like "+05:30" as valid Intl time zones, but
+// Postgres's `AT TIME ZONE '+05:30'` reads that as a POSIX spec with the sign
+// inverted. JS and SQL would then disagree about which day it is, so offsets
+// are rejected here rather than passed through.
+export function resolveTimeZone(configured: string): string {
+  if (configured.startsWith("+") || configured.startsWith("-")) {
+    console.error(
+      `Invalid DISPLAY_TIME_ZONE ${JSON.stringify(configured)}; falling back to UTC`,
+    );
+    return "UTC";
+  }
   try {
-    new Date().toLocaleString("en-US", { timeZone: configured });
-    return configured;
+    return new Intl.DateTimeFormat("en-US", { timeZone: configured }).resolvedOptions()
+      .timeZone;
   } catch {
     console.error(
       `Invalid DISPLAY_TIME_ZONE ${JSON.stringify(configured)}; falling back to UTC`,
@@ -18,7 +27,7 @@ function resolveTimeZone(): string {
 }
 
 // Resolved once at module scope: the zone can't change between renders.
-export const TIME_ZONE = resolveTimeZone();
+export const TIME_ZONE = resolveTimeZone(optionalEnv("DISPLAY_TIME_ZONE", "UTC"));
 
 const DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -71,7 +80,13 @@ export function parseDay(value: unknown): string | null {
     return null;
   }
   const [year, month, date] = match.slice(1).map(Number);
-  if (month < 1 || month > 12 || date < 1 || date > daysInMonth(year, month)) {
+  if (
+    year < 1000 ||
+    month < 1 ||
+    month > 12 ||
+    date < 1 ||
+    date > daysInMonth(year, month)
+  ) {
     return null;
   }
   return value;
