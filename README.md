@@ -66,6 +66,19 @@ labelled "via web". Deleting removes the row from Postgres permanently. Without
 the cookie the page stays read-only; with `ADMIN_SECRET` unset, both are off
 entirely. Rotating the secret signs out every browser.
 
+## Daily check-in
+
+The page is a month calendar. Click a day to see that day's thoughts and, when
+you're logged in as admin, that day's check-in. Today's check-in is a form with
+one box per question. You can come back and edit it until midnight in
+`DISPLAY_TIME_ZONE`, after which it's read-only. Blank answers are skipped.
+
+Manage the questions at `/questions` (the checklist icon in the header). You
+can add, reword, reorder and retire them. Each answer keeps a copy of the
+wording it was given, so rewording or retiring a question never changes past
+days. Check-ins are private: visitors see the calendar and thoughts, but not
+your answers or which days had a check-in.
+
 ## Tests
 
 ```bash
@@ -81,4 +94,4 @@ npm test
 | `TELEGRAM_CHAT_ID` | yes | The only chat whose messages are stored. Must be numeric. |
 | `TELEGRAM_WEBHOOK_SECRET` | yes | Verified on every webhook request. |
 | `ADMIN_SECRET` | no | Enables writing and deleting from the page. See [Writing and deleting from the page](#writing-and-deleting-from-the-page). |
-| `DISPLAY_TIME_ZONE` | no | IANA zone for timestamps. Defaults to `UTC`; an invalid zone falls back to `UTC` with a logged warning. |
+| `DISPLAY_TIME_ZONE` | no | IANA zone name (e.g. `Asia/Tokyo`) for timestamps, and for where one day ends and the next begins. Defaults to `UTC`. An invalid zone or an offset like `+05:30` falls back to `UTC` with a logged warning. |
