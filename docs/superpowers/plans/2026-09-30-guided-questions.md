@@ -1062,12 +1062,14 @@ import type { FormEvent, KeyboardEvent } from "react";
 
 import { saveCheckinAction } from "@/app/checkin-actions";
 
-type Status = "idle" | "saved" | "day-ended" | "error";
+type Status = "idle" | "saved" | "day-ended" | "questions-changed" | "error";
 
 const STATUS_TEXT: Record<Status, string> = {
   idle: "⌘/Ctrl + Enter to save",
   saved: "Saved",
   "day-ended": "This day has ended. Your drafts are still here. Copy them, then refresh.",
+  "questions-changed":
+    "Your questions changed since this page loaded. Copy your drafts, then refresh.",
   error: "Couldn't save the check-in.",
 };
 
@@ -1113,7 +1115,7 @@ export function CheckinForm({
           day,
           questions.map((q) => ({ questionId: q.id, text: drafts[q.id] ?? "" })),
         );
-        setStatus(result.ok ? "saved" : "day-ended");
+        setStatus(result.ok ? "saved" : result.reason);
       } catch (error) {
         // Keep the drafts: nothing typed should be lost to a failed save.
         console.error("failed to save check-in", error);
