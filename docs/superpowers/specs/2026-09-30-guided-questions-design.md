@@ -105,7 +105,7 @@ never gets shifted by the server's UTC clock.
   `question_text`. `deleteAnswer(day, questionId)`.
 - `addQuestion(text)` (position = max + 1), `updateQuestionText(id, text)`,
   `moveQuestion(id, "up" | "down")` (swaps position with the neighbouring active
-  question in one transaction), `retireQuestion(id)`.
+  question in one atomic statement), `retireQuestion(id)`.
 
 ## Server actions
 
@@ -144,7 +144,8 @@ trimmed, non-empty, and at most 500 characters. Each action calls
   selected day and today are highlighted, and a dot marks days with entries.
   Visitors see dots for thoughts only; when logged in, the dots include
   check-ins, so check-in days aren't revealed to visitors.
-- **Day heading**, for example "Wednesday, 30 September".
+- **Day heading**, for example "Wednesday, September 30, 2026" (US format, to
+  match the header date).
 - **Check-in section** (admin only):
   - For today: `CheckinForm` (client), one labelled textarea per active question,
     pre-filled with today's saved answers, and a Save button. ⌘/Ctrl+Enter
@@ -183,7 +184,21 @@ Vitest, following the existing `*.test.ts` pattern with the DB layer mocked.
 
 Run `npm run db:init` against prod before deploying. It creates both tables and
 the starter questions. Nothing touches `messages`, so the order matters less
-than it did on Day 3, but the new page would fail to load without the tables.
+than it did on Day 3. Without the tables, visitors and the Telegram webhook keep
+working, but the admin's view of `/` shows the "Couldn't reach the database"
+notice (the logged error names the missing table).
+
+## Known limitations (accepted)
+
+- An answer saved today to a question retired later today stays stored, but is
+  hidden until tomorrow, when the day turns read-only and shows it.
+- A form open across midnight keeps its drafts only until the next
+  revalidation, which remounts it under the new day. A save that lands right at
+  midnight is stored on the previous day but can look lost.
+- The header date lives in the root layout, so a tab left open overnight can
+  show yesterday's date until a hard reload.
+- Check-in writes aren't wrapped in a transaction. A database error mid-save
+  leaves it partially saved; the form keeps the drafts, and saving again fixes it.
 
 ## Out of scope
 
