@@ -171,8 +171,9 @@ Vitest, following the existing `*.test.ts` pattern with the DB layer mocked.
   non-today `day`, rejects unknown or retired question ids and oversized text,
   upserts non-empty answers and deletes blank ones. The question actions check
   auth and validation.
-- Manual check: answer today's check-in, reword a question, and confirm that
-  today's saved answer keeps the old wording in the day view.
+- Manual check: answer today's check-in, then reword a question the next day
+  and confirm the previous day's answer still shows the old wording. Re-saving
+  today copies the new wording in, by design.
 
 ## Before going live
 
