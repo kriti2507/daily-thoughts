@@ -1,4 +1,5 @@
 import { getSql } from "@/lib/db";
+import { TIME_ZONE } from "@/lib/days";
 
 export type MessageSource = "telegram" | "web";
 
@@ -38,20 +39,36 @@ export async function deleteMessage(id: number): Promise<void> {
   await sql`DELETE FROM messages WHERE id = ${id}`;
 }
 
-export async function listMessages(limit: number): Promise<Message[]> {
-  const sql = getSql();
-  const rows = await sql<
-    { id: string; text: string; sent_at: Date; source: MessageSource }[]
-  >`
-    SELECT id, text, sent_at, source
-    FROM messages
-    ORDER BY sent_at DESC, id DESC
-    LIMIT ${limit}
-  `;
-  return rows.map((row) => ({
+type MessageRow = { id: string; text: string; sent_at: Date; source: MessageSource };
+
+function toMessage(row: MessageRow): Message {
+  return {
     id: Number(row.id),
     text: row.text,
     sentAt: row.sent_at,
     source: row.source,
-  }));
+  };
+}
+
+// A message belongs to the day it was sent on in the display time zone.
+export async function listMessagesForDay(day: string): Promise<Message[]> {
+  const sql = getSql();
+  const rows = await sql<MessageRow[]>`
+    SELECT id, text, sent_at, source
+    FROM messages
+    WHERE (sent_at AT TIME ZONE ${TIME_ZONE})::date = ${day}::date
+    ORDER BY sent_at DESC, id DESC
+  `;
+  return rows.map(toMessage);
+}
+
+// `to_char` so the driver hands back "YYYY-MM-DD" strings rather than Dates.
+export async function listDaysWithMessages(from: string, to: string): Promise<string[]> {
+  const sql = getSql();
+  const rows = await sql<{ day: string }[]>`
+    SELECT DISTINCT to_char((sent_at AT TIME ZONE ${TIME_ZONE})::date, 'YYYY-MM-DD') AS day
+    FROM messages
+    WHERE (sent_at AT TIME ZONE ${TIME_ZONE})::date BETWEEN ${from}::date AND ${to}::date
+  `;
+  return rows.map((row) => row.day);
 }
