@@ -25,12 +25,12 @@ export function ModeSwitch() {
       aria-checked={isLoud}
       aria-label="Loud mode"
       onClick={() => setTheme(isLoud ? "calm" : "loud")}
-      className="pop flex h-10 cursor-pointer items-center rounded-full p-1 text-[12px] font-bold uppercase tracking-wide"
+      className="pop flex h-10 cursor-pointer items-center rounded-full p-1 text-[11px] font-bold uppercase tracking-wide focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)] sm:text-[12px]"
     >
       <span
         aria-hidden
         className={cn(
-          "rounded-full px-2.5 py-1 transition-colors duration-200",
+          "rounded-full px-2 py-1 transition-colors duration-200 sm:px-2.5",
           !isLoud && "bg-[var(--ink)] text-[var(--paper)]",
         )}
       >
@@ -39,7 +39,7 @@ export function ModeSwitch() {
       <span
         aria-hidden
         className={cn(
-          "rounded-full px-2.5 py-1 transition-colors duration-200",
+          "rounded-full px-2 py-1 transition-colors duration-200 sm:px-2.5",
           isLoud && "bg-[var(--ink)] text-[var(--note-1)]",
         )}
       >

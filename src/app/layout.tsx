@@ -47,11 +47,11 @@ export default async function RootLayout({
               <span className="pop hidden h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand)] sm:flex">
                 <Cloud className="h-5 w-5 text-[var(--surface)]" strokeWidth={2.5} />
               </span>
-              <span className="misprint font-heading text-xl tracking-tight text-[var(--brand)] sm:text-2xl">
+              <span className="misprint whitespace-nowrap font-heading text-xl tracking-tight text-[var(--brand)] sm:text-2xl">
                 Daily Thoughts
               </span>
             </Link>
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               {canWrite && (
                 <Link
                   href="/questions"

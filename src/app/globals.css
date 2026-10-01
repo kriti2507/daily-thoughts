@@ -61,7 +61,7 @@
   --note-2: #FF48B0;
   --note-3: #9EE6FF;
   --note-4: #B8F5A0;
-  --stamp: #E5262B;
+  --stamp: #C8191F;
   --line: 2.5px;
   --shadow: 4px 4px 0 var(--ink);
   --shadow-sm: 2px 2px 0 var(--ink);
@@ -80,13 +80,13 @@
   --paper: #E9EFE6;
   --surface: #FFFFFF;
   --ink: #33433A;
-  --ink-soft: #5C6E63;
+  --ink-soft: #52645A;
   --brand: #3E5A4A;
   --note-1: #F5EBCB;
   --note-2: #F0D9D9;
   --note-3: #D6E4EE;
   --note-4: #DDEAD3;
-  --stamp: #B4544F;
+  --stamp: #A64B46;
   --line: 0px;
   --shadow: 0 6px 14px rgb(62 90 74 / 0.15);
   --shadow-sm: 0 2px 6px rgb(62 90 74 / 0.15);
@@ -359,7 +359,6 @@ body::after {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
-    opacity: 0.85;
   }
   .stamp.is-thunking {
     animation: stamp 0.5s ease-out both;
@@ -384,7 +383,7 @@ body::after {
 @keyframes stamp {
   0% { transform: scale(2.4); opacity: 0; }
   70% { transform: scale(0.92); opacity: 0.95; }
-  100% { transform: scale(1); opacity: 0.85; }
+  100% { transform: scale(1); opacity: 1; }
 }
 @keyframes tear {
   to { transform: perspective(400px) rotateX(-100deg); opacity: 0; }
@@ -398,6 +397,8 @@ body::after {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
 }
