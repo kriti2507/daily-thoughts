@@ -12,7 +12,7 @@
 
 **Conventions for every task:**
 - Work on branch `feat/sky-and-board` (already created).
-- Commits are GPG-signed and fail inside the sandbox: run `git commit` with the sandbox disabled. Never push.
+- Commit signing is off in this repo, so `git commit` works inside the sandbox. Never push.
 - Each commit message ends with the line `Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>` after a blank line.
 - `npm test` runs Vitest (node environment, `src/**/*.test.ts`). `npx tsc --noEmit` type-checks. `npm run lint` runs ESLint.
 
