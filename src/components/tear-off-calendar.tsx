@@ -64,7 +64,7 @@ export function TearOffCalendar({
     setTearingDay(day);
     // On phones the calendar sits in a hidden wrapper, so there's no tear to
     // wait for; offsetParent is null when the page isn't rendered.
-    if (pageRef.current?.offsetParent !== null) {
+    if (pageRef.current && pageRef.current.offsetParent !== null) {
       await afterAnimation(TEAR_MS);
     }
     // The user may have left for another page during the wait; don't drag

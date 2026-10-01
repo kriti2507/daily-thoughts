@@ -9,8 +9,9 @@ import { emit, FLIP_DAY, OPEN_COMPOSER } from "@/lib/ui-events";
 // Things that keep their own keys: text fields, and anything marked
 // data-keys-local (a post-it's tape, which arrows nudge).
 const OWNS_KEYS = "input, textarea, select, [contenteditable='true'], [data-keys-local]";
-// Swipes that start here are someone else's: notes, the dock, the header.
-const OWNS_TOUCH = `${OWNS_KEYS}, .note, nav, header`;
+// Swipes that start here are someone else's: notes, the dock, the header, and
+// any dialog.
+const OWNS_TOUCH = `${OWNS_KEYS}, .note, nav, header, dialog`;
 
 function within(target: EventTarget | null, selector: string): boolean {
   return target instanceof Element && target.closest(selector) !== null;

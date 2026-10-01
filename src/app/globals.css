@@ -155,8 +155,6 @@
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--brand);
-  --text-secondary: var(--ink-soft);
-  --text-muted: var(--ink-soft);
 }
 
 @layer base {

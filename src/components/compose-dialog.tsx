@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useTransition } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
 import { PenLine } from "lucide-react";
 
@@ -20,8 +20,10 @@ export function ComposeDialog() {
   const [isRising, setIsRising] = useState(false);
   const [isPending, startTransition] = useTransition();
   const canSave = text.trim().length > 0 && !isPending;
+  const busy = isPending || isRising;
 
   function open() {
+    if (busy) return; // the save in flight closes the dialog itself
     dialogRef.current?.showModal();
     textareaRef.current?.focus();
   }
@@ -30,13 +32,11 @@ export function ComposeDialog() {
     dialogRef.current?.close();
   }
 
+  const onOpenEvent = useEffectEvent(open);
   useEffect(() => {
-    function handleOpen() {
-      dialogRef.current?.showModal();
-      textareaRef.current?.focus();
-    }
-    window.addEventListener(OPEN_COMPOSER, handleOpen);
-    return () => window.removeEventListener(OPEN_COMPOSER, handleOpen);
+    const handle = () => onOpenEvent();
+    window.addEventListener(OPEN_COMPOSER, handle);
+    return () => window.removeEventListener(OPEN_COMPOSER, handle);
   }, []);
 
   function save() {
@@ -86,7 +86,13 @@ export function ComposeDialog() {
       <dialog
         ref={dialogRef}
         aria-labelledby="compose-title"
-        className="m-auto w-[min(560px,calc(100%-2rem))] overflow-visible bg-transparent p-0 text-[var(--ink)] backdrop:bg-black/40 backdrop:backdrop-blur-sm"
+        // Escape mid-save would let a reopen race the pending close().
+        onCancel={(event) => {
+          if (busy) event.preventDefault();
+        }}
+        // The form fills the dialog (p-0), so only backdrop clicks land here.
+        onClick={(event) => event.target === event.currentTarget && !busy && close()}
+        className="mx-auto mt-[8dvh] mb-auto sm:m-auto w-[min(560px,calc(100%-2rem))] overflow-visible bg-transparent p-0 text-[var(--ink)] backdrop:bg-black/40 backdrop:backdrop-blur-sm"
       >
         <form
           onSubmit={handleSubmit}
@@ -106,14 +112,15 @@ export function ComposeDialog() {
             aria-labelledby="compose-title"
             readOnly={isPending}
             maxLength={4096}
-            className="w-full resize-y rounded-2xl bg-[var(--paper)] px-4 py-3 text-[16px] leading-relaxed outline-none focus:ring-2 focus:ring-[var(--brand)]"
+            className="max-h-[40dvh] w-full resize-none rounded-2xl border-[length:var(--line)] border-[var(--ink)] bg-[var(--paper)] px-4 py-3 text-[16px] leading-relaxed outline-none ring-1 ring-[var(--border)] focus:ring-2 focus:ring-[var(--brand)] sm:resize-y"
           />
           <div className="flex items-center justify-end gap-2">
             <span className="mr-auto text-[12px] text-[var(--ink-soft)]">⌘/Ctrl + Enter to save</span>
             <button
               type="button"
               onClick={close}
-              className="h-9 cursor-pointer rounded-lg px-3 text-[13px] font-semibold text-[var(--ink-soft)] hover:bg-[var(--note-1)]"
+              disabled={busy}
+              className="h-9 cursor-pointer rounded-lg px-3 text-[13px] font-semibold text-[var(--ink-soft)] hover:bg-[var(--note-1)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               Cancel
             </button>

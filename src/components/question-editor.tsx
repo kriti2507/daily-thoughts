@@ -32,7 +32,7 @@ function IconButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-[var(--text-muted)] transition-colors duration-200 hover:bg-[var(--border)] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-[var(--ink-soft)] transition-colors duration-200 hover:bg-[var(--border)] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
     >
       {children}
       <span className="sr-only">{label}</span>
