@@ -24,6 +24,7 @@ env.txt
 next-env.d.ts
 
 # misc
+.superpowers/
 .DS_Store
 *.pem
 npm-debug.log*

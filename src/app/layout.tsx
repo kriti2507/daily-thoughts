@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { Quicksand, Inter, Caveat } from "next/font/google";
-import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { ComposeDialog } from "@/components/compose-dialog";
+import { Bricolage_Grotesque, Caveat, Inter } from "next/font/google";
 import Link from "next/link";
-import { ListChecks, MessageCircle } from "lucide-react";
-import { isAdmin } from "@/lib/admin";
-import { TIME_ZONE } from "@/lib/days";
+import { Cloud, ListChecks } from "lucide-react";
 
-const quicksand = Quicksand({
+import "./globals.css";
+import { ComposeDialog } from "@/components/compose-dialog";
+import { ModeSwitch } from "@/components/mode-switch";
+import { ThemeProvider } from "@/components/theme-provider";
+import { isAdmin } from "@/lib/admin";
+
+const bricolage = Bricolage_Grotesque({
   variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["800"],
 });
 
 const inter = Inter({
@@ -31,21 +31,6 @@ export const metadata: Metadata = {
   description: "Thoughts sent to a Telegram bot, collected on one page",
 };
 
-function HeaderDate() {
-  const now = new Date();
-  const formatted = now.toLocaleDateString("en-US", {
-    timeZone: TIME_ZONE,
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-  return (
-    <span className="hidden sm:inline text-[13px] text-[var(--text-secondary)] font-medium">
-      {formatted}
-    </span>
-  );
-}
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -54,31 +39,36 @@ export default async function RootLayout({
   const canWrite = await isAdmin();
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${quicksand.variable} ${inter.variable} ${caveat.variable} antialiased`}
-      >
+    // The font variables go on <html>, where `font-sans` is applied; on <body>
+    // they'd be out of reach and the page would fall back to a serif.
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${bricolage.variable} ${inter.variable} ${caveat.variable}`}
+    >
+      <body className="antialiased">
         <ThemeProvider>
-          <header className="flex items-center justify-between px-4 sm:px-10 py-5 border-b border-[var(--border)] sticky top-0 z-10 bg-[var(--background)]/80 backdrop-blur-xl">
+          <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b-[length:var(--line)] border-[var(--ink)] bg-[var(--paper)]/90 px-4 py-4 backdrop-blur-md sm:px-10">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-[var(--accent-amber)] to-[var(--accent-terracotta)] flex items-center justify-center shadow-[var(--shadow-md)]">
-                <MessageCircle className="w-5 h-5 text-white" strokeWidth={2} />
-              </div>
-              <span className="font-heading text-xl font-bold tracking-tight">Daily Thoughts</span>
+              <span className="pop hidden h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand)] sm:flex">
+                <Cloud className="h-5 w-5 text-[var(--surface)]" strokeWidth={2.5} />
+              </span>
+              <span className="misprint whitespace-nowrap font-heading text-xl tracking-tight text-[var(--brand)] sm:text-2xl">
+                Daily Thoughts
+              </span>
             </Link>
-            <div className="flex items-center gap-4">
-              <HeaderDate />
+            <div className="flex items-center gap-1.5 sm:gap-3">
               {canWrite && (
                 <Link
                   href="/questions"
-                  className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-[var(--border)] bg-[var(--card)] transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-sm)]"
+                  className="pop flex h-10 w-10 items-center justify-center rounded-xl"
                 >
-                  <ListChecks className="h-4 w-4 text-[var(--accent-amber)]" />
+                  <ListChecks className="h-4 w-4" />
                   <span className="sr-only">Questions</span>
                 </Link>
               )}
               {canWrite && <ComposeDialog />}
-              <ThemeToggle />
+              <ModeSwitch />
             </div>
           </header>
           <main>{children}</main>

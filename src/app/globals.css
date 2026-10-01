@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -49,97 +47,114 @@
   --radius-4xl: calc(var(--radius) * 2.625);
 }
 
-:root {
-  --radius: 1rem;
-
-  /* Honey & Parchment — Light Mode */
-  --background: #FDF8F3;
-  --foreground: #2D1B0E;
-  --card: #FFFFFF;
-  --card-foreground: #2D1B0E;
-  --popover: #FFFFFF;
-  --popover-foreground: #2D1B0E;
-  --primary: #D97706;
-  --primary-foreground: #FFFFFF;
-  --secondary: #FAF4ED;
-  --secondary-foreground: #2D1B0E;
-  --muted: #FAF4ED;
-  --muted-foreground: #8B7355;
-  --accent: #FAF4ED;
-  --accent-foreground: #2D1B0E;
-  --destructive: #DC2626;
-  --border: #F0E6D8;
-  --input: #F0E6D8;
-  --ring: #D97706;
-  --chart-1: #D97706;
-  --chart-2: #C2410C;
-  --chart-3: #059669;
-  --chart-4: #7C3AED;
-  --chart-5: #E11D48;
-
-  /* Sidebar (unused but required by shadcn) */
-  --sidebar: #FAF4ED;
-  --sidebar-foreground: #2D1B0E;
-  --sidebar-primary: #D97706;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #FAF4ED;
-  --sidebar-accent-foreground: #2D1B0E;
-  --sidebar-border: #F0E6D8;
-  --sidebar-ring: #D97706;
-
-  /* Custom design tokens */
-  --bg-subtle: #FAF4ED;
-  --text-secondary: #8B7355;
-  --text-muted: #7A6048;
-  --border-strong: #E8D5C0;
-  --accent-amber: #D97706;
-  --accent-terracotta: #C2410C;
-  --shadow-sm: 0 1px 3px rgba(45,27,14,0.04), 0 1px 2px rgba(45,27,14,0.06);
-  --shadow-md: 0 4px 12px rgba(45,27,14,0.06), 0 2px 4px rgba(45,27,14,0.04);
+/* Loud: Riso Pop. Also the fallback before next-themes sets data-mode, so
+   the calm blocks below must override every token defined here. */
+:root,
+[data-mode="loud"] {
+  color-scheme: light;
+  --paper: #FFF1DC;
+  --surface: #FFFFFF;
+  --ink: #111111;
+  --ink-soft: #4A4038;
+  --brand: #2340FF;
+  --note-1: #FFE600;
+  --note-2: #FF48B0;
+  --note-3: #9EE6FF;
+  --note-4: #B8F5A0;
+  --stamp: #C8191F;
+  --line: 2.5px;
+  --shadow: 4px 4px 0 var(--ink);
+  --shadow-sm: 2px 2px 0 var(--ink);
+  --shadow-lift: 10px 12px 0 rgb(17 17 17 / 0.35);
+  --cloud-filter: drop-shadow(2.5px 0 0 var(--ink)) drop-shadow(-2.5px 0 0 var(--ink))
+    drop-shadow(0 2.5px 0 var(--ink)) drop-shadow(0 -2.5px 0 var(--ink))
+    drop-shadow(4px 4px 0 var(--ink));
+  --misprint: 3px 2px 0 var(--note-2);
+  --grain-opacity: 0.35;
+  --radius-note: 2px;
 }
 
-.dark {
-  --background: #1C1612;
-  --foreground: #F0E6D8;
-  --card: #2A2118;
-  --card-foreground: #F0E6D8;
-  --popover: #2A2118;
-  --popover-foreground: #F0E6D8;
-  --primary: #F59E0B;
-  --primary-foreground: #1C1612;
-  --secondary: #241D17;
-  --secondary-foreground: #F0E6D8;
-  --muted: #241D17;
-  --muted-foreground: #8B7355;
-  --accent: #241D17;
-  --accent-foreground: #F0E6D8;
-  --destructive: #FB7185;
-  --border: #3D2E22;
-  --input: #3D2E22;
-  --ring: #F59E0B;
-  --chart-1: #F59E0B;
-  --chart-2: #FB923C;
-  --chart-3: #34D399;
-  --chart-4: #A78BFA;
-  --chart-5: #FB7185;
+/* Calm: Sage Morning. */
+[data-mode="calm"] {
+  color-scheme: light;
+  --paper: #E9EFE6;
+  --surface: #FFFFFF;
+  --ink: #33433A;
+  --ink-soft: #52645A;
+  --brand: #3E5A4A;
+  --note-1: #F5EBCB;
+  --note-2: #F0D9D9;
+  --note-3: #D6E4EE;
+  --note-4: #DDEAD3;
+  --stamp: #A64B46;
+  --line: 0px;
+  --shadow: 0 6px 14px rgb(62 90 74 / 0.15);
+  --shadow-sm: 0 2px 6px rgb(62 90 74 / 0.15);
+  --shadow-lift: 0 16px 30px rgb(62 90 74 / 0.25);
+  --cloud-filter: drop-shadow(0 6px 14px rgb(62 90 74 / 0.15));
+  --misprint: none;
+  --grain-opacity: 0.15;
+  --radius-note: 6px;
+}
 
-  --sidebar: #241D17;
-  --sidebar-foreground: #F0E6D8;
-  --sidebar-primary: #F59E0B;
-  --sidebar-primary-foreground: #1C1612;
-  --sidebar-accent: #241D17;
-  --sidebar-accent-foreground: #F0E6D8;
-  --sidebar-border: #3D2E22;
-  --sidebar-ring: #F59E0B;
+/* Calm at night follows the system. Loud is always bright. */
+@media (prefers-color-scheme: dark) {
+  [data-mode="calm"] {
+    color-scheme: dark;
+    --paper: #1B221E;
+    --surface: #26302A;
+    --ink: #E3EBE4;
+    --ink-soft: #A9B8AE;
+    --brand: #9CC3AA;
+    --note-1: #5A5238;
+    --note-2: #5A3F44;
+    --note-3: #3A4A57;
+    --note-4: #3E5040;
+    --stamp: #D98A84;
+    --shadow: 0 6px 14px rgb(0 0 0 / 0.35);
+    --shadow-sm: 0 2px 6px rgb(0 0 0 / 0.35);
+    --shadow-lift: 0 16px 30px rgb(0 0 0 / 0.45);
+    --cloud-filter: drop-shadow(0 6px 14px rgb(0 0 0 / 0.35));
+    --grain-opacity: 0.1;
+  }
+}
 
-  --bg-subtle: #241D17;
-  --text-secondary: #B8A08A;
-  --text-muted: #A8927D;
-  --border-strong: #4D3D2E;
-  --accent-amber: #F59E0B;
-  --accent-terracotta: #FB923C;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.15);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15);
+/* shadcn and the older components read these names; they all follow the
+   mode through the tokens above. */
+:root {
+  --radius: 1rem;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--brand);
+  --primary-foreground: var(--surface);
+  --secondary: var(--paper);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper);
+  --muted-foreground: var(--ink-soft);
+  --accent: var(--note-1);
+  --accent-foreground: var(--ink);
+  --destructive: var(--stamp);
+  --border: color-mix(in srgb, var(--ink) 18%, transparent);
+  --border-strong: color-mix(in srgb, var(--ink) 40%, transparent);
+  --input: var(--border);
+  --ring: var(--brand);
+  --chart-1: var(--brand);
+  --chart-2: var(--note-2);
+  --chart-3: var(--note-1);
+  --chart-4: var(--note-3);
+  --chart-5: var(--note-4);
+  --sidebar: var(--paper);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--surface);
+  --sidebar-accent: var(--note-1);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--brand);
 }
 
 @layer base {
@@ -154,9 +169,285 @@
   }
 }
 
+/* Paper grain over everything; never catches a click. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .28 0 0 0 0 .2 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@layer components {
+  .misprint {
+    text-shadow: var(--misprint);
+  }
+
+  /* Small raised things: buttons, chips. */
+  .pop {
+    background: var(--surface);
+    border: var(--line) solid var(--ink);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Big raised things: the calendar, dialogs. */
+  .pop-lg {
+    border: var(--line) solid var(--ink);
+    box-shadow: var(--shadow);
+  }
+
+  /* Clouds are thought bubbles: a rounded body with puffs on every side and two
+     trailing circles below, drawn behind the text. The outline is a stack of
+     drop-shadows so it hugs the whole union as one shape. Puffs are fixed
+     sizes, so the cloud stays lumpy however long the thought. */
+  .cloud {
+    position: relative;
+    isolation: isolate;
+    margin-bottom: 30px;
+    rotate: var(--tilt, 0deg);
+  }
+  .bobbing {
+    animation: bob var(--bob-duration, 5s) ease-in-out var(--bob-delay, 0s) infinite;
+  }
+  .cloud-shape {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    filter: var(--cloud-filter);
+  }
+  .cloud-shape > span {
+    position: absolute;
+    background: var(--surface);
+    border-radius: 9999px;
+  }
+  .cloud-shape > .cloud-body {
+    inset: 30px 14px 16px 14px;
+    border-radius: 44px;
+  }
+  .cloud-shape > .cloud-top-1 {
+    width: 60px;
+    height: 60px;
+    left: 12%;
+    top: 12px;
+  }
+  .cloud-shape > .cloud-top-2 {
+    width: 84px;
+    height: 84px;
+    left: 36%;
+    top: 0;
+  }
+  .cloud-shape > .cloud-top-3 {
+    width: 56px;
+    height: 56px;
+    right: 12%;
+    top: 16px;
+  }
+  .cloud-shape > .cloud-bottom-1 {
+    width: 50px;
+    height: 50px;
+    left: 18%;
+    bottom: 0;
+  }
+  .cloud-shape > .cloud-bottom-2 {
+    width: 58px;
+    height: 58px;
+    left: 50%;
+    bottom: 2px;
+  }
+  .cloud-shape > .cloud-bottom-3 {
+    width: 42px;
+    height: 42px;
+    right: 14%;
+    bottom: 6px;
+  }
+  .cloud-shape > .cloud-left {
+    width: 56px;
+    height: 56px;
+    left: 0;
+    top: calc(50% - 20px);
+  }
+  .cloud-shape > .cloud-right {
+    width: 52px;
+    height: 52px;
+    right: 0;
+    top: calc(50% - 16px);
+  }
+  /* The tail hangs below the box; .cloud's margin-bottom makes room for it. */
+  .cloud-shape > .cloud-tail-1 {
+    width: 18px;
+    height: 18px;
+    left: 8px;
+    bottom: -16px;
+  }
+  .cloud-shape > .cloud-tail-2 {
+    width: 10px;
+    height: 10px;
+    left: -4px;
+    bottom: -30px;
+  }
+  .cloud.is-puffing {
+    animation: puff 0.4s ease-in forwards;
+  }
+  .cloud.is-rising {
+    animation: rise 0.6s ease-in forwards;
+  }
+
+  /* The sky band tints with the day's weather. */
+  .sky {
+    border-radius: 2rem;
+    padding: 2rem 1.5rem;
+    transition: background-color 0.3s;
+  }
+  .sky[data-weather="fair"] {
+    background: color-mix(in srgb, var(--note-3) 15%, transparent);
+  }
+  .sky[data-weather="cloudy"] {
+    background: color-mix(in srgb, var(--note-3) 30%, transparent);
+  }
+  .sky[data-weather="stormy"] {
+    background: color-mix(in srgb, var(--note-3) 50%, transparent);
+  }
+
+  /* Post-its. Phones: a two-column grid, notes grow with their text.
+     Desktop: a free board, notes are a fixed size placed at --x/--y. */
+  .board {
+    --note-w: 100%;
+    --note-h: 10rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+  .note {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: var(--note-w);
+    min-height: var(--note-h);
+    padding: 1.75rem 1rem 1rem;
+    background: var(--note);
+    color: var(--ink);
+    border: var(--line) solid var(--ink);
+    border-radius: var(--radius-note);
+    box-shadow: var(--shadow);
+    rotate: var(--tilt, 0deg);
+  }
+  .note.is-dragging {
+    z-index: 10;
+    scale: 1.04;
+    box-shadow: var(--shadow-lift);
+  }
+  /* The last note moved sits above its neighbours, below one being dragged. */
+  .note.is-raised {
+    z-index: 5;
+  }
+  .note.is-slapping {
+    animation: slap 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+    animation-delay: var(--slap-delay, 0s);
+  }
+  .note-tape {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    width: 72px;
+    height: 22px;
+    translate: -50% 0;
+    rotate: -4deg;
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    border: var(--line) solid var(--ink);
+  }
+  @media (min-width: 48rem) {
+    .board {
+      --note-w: 13rem;
+      --note-h: 12rem;
+      position: relative;
+      display: block;
+      min-height: var(--board-h);
+    }
+    .board .note {
+      position: absolute;
+      height: var(--note-h);
+      /* No overflow: hidden — it would clip the tape; the note's text areas
+         scroll instead. */
+      left: calc(var(--x) * (100% - var(--note-w)));
+      top: calc(var(--y) * (100% - var(--note-h)));
+    }
+    .board .note-tape {
+      cursor: grab;
+      touch-action: none;
+    }
+    .board .note.is-dragging .note-tape {
+      cursor: grabbing;
+    }
+  }
+
+  /* Tear-off calendar. */
+  .tear-page {
+    transform-origin: top center;
+  }
+  .tear-page.is-tearing {
+    animation: tear 0.3s ease-in forwards;
+  }
+  .tear-page.is-settling {
+    animation: settle 0.25s ease-out both;
+  }
+  .stamp {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    translate: -50% -50%;
+    rotate: -14deg;
+    padding: 2px 6px;
+    border: 3px solid var(--stamp);
+    border-radius: 4px;
+    color: var(--stamp);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .stamp.is-thunking {
+    animation: stamp 0.5s ease-out both;
+  }
+}
+
+@keyframes bob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
+}
+@keyframes puff {
+  to { transform: scale(1.3); filter: blur(6px); opacity: 0; }
+}
+@keyframes rise {
+  to { transform: translateY(-40vh) scale(0.85); opacity: 0; }
+}
+@keyframes slap {
+  0% { transform: translateY(-80px) scale(1.15); opacity: 0; }
+  60% { transform: translateY(4px) scale(0.97); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+@keyframes stamp {
+  0% { transform: scale(2.4); opacity: 0; }
+  70% { transform: scale(0.92); opacity: 0.95; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes tear {
+  to { transform: perspective(400px) rotateX(-100deg); opacity: 0; }
+}
+@keyframes settle {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
 }

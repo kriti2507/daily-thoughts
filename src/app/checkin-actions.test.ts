@@ -6,14 +6,20 @@ vi.mock("@/lib/checkins", () => ({
   listActiveQuestions: vi.fn(),
   moveQuestion: vi.fn(),
   retireQuestion: vi.fn(),
+  setAnswerPosition: vi.fn(),
   updateQuestionText: vi.fn(),
   upsertAnswer: vi.fn(),
 }));
 vi.mock("@/lib/admin", () => ({
   isAdmin: vi.fn(),
 }));
-vi.mock("@/lib/days", () => ({
+vi.mock("@/lib/days", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/days")>()),
   today: vi.fn(),
+}));
+vi.mock("@/lib/stickers", () => ({
+  clearDaySticker: vi.fn(),
+  setDaySticker: vi.fn(),
 }));
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -22,9 +28,11 @@ vi.mock("next/cache", () => ({
 import { revalidatePath } from "next/cache";
 import {
   addQuestionAction,
+  moveNoteAction,
   moveQuestionAction,
   retireQuestionAction,
   saveCheckinAction,
+  setDayStickerAction,
   updateQuestionAction,
 } from "@/app/checkin-actions";
 import { isAdmin } from "@/lib/admin";
@@ -34,10 +42,12 @@ import {
   listActiveQuestions,
   moveQuestion,
   retireQuestion,
+  setAnswerPosition,
   updateQuestionText,
   upsertAnswer,
 } from "@/lib/checkins";
 import { today } from "@/lib/days";
+import { clearDaySticker, setDaySticker } from "@/lib/stickers";
 
 const TODAY = "2026-09-30";
 
@@ -226,5 +236,78 @@ describe("question actions", () => {
     expect(updateQuestionText).not.toHaveBeenCalled();
     expect(moveQuestion).not.toHaveBeenCalled();
     expect(retireQuestion).not.toHaveBeenCalled();
+  });
+});
+
+describe("moveNoteAction", () => {
+  it("saves a clamped position, on any day, and refreshes the page", async () => {
+    vi.mocked(isAdmin).mockResolvedValue(true);
+
+    await moveNoteAction("2026-09-01", 1, 1.4, -0.2);
+
+    expect(setAnswerPosition).toHaveBeenCalledWith("2026-09-01", 1, 1, 0);
+    expect(revalidatePath).toHaveBeenCalledWith("/");
+  });
+
+  it("refuses a non-admin", async () => {
+    vi.mocked(isAdmin).mockResolvedValue(false);
+
+    await expect(moveNoteAction(TODAY, 1, 0.5, 0.5)).rejects.toThrow("unauthorized");
+    expect(setAnswerPosition).not.toHaveBeenCalled();
+  });
+
+  it("rejects a bad day, id or position", async () => {
+    vi.mocked(isAdmin).mockResolvedValue(true);
+
+    await expect(moveNoteAction("yesterday", 1, 0.5, 0.5)).rejects.toThrow("invalid day");
+    await expect(moveNoteAction(TODAY, 0, 0.5, 0.5)).rejects.toThrow("invalid question id");
+    await expect(moveNoteAction(TODAY, 1, Number.NaN, 0.5)).rejects.toThrow("invalid position");
+    await expect(
+      moveNoteAction(TODAY, 1, 0.5, "0.5" as unknown as number),
+    ).rejects.toThrow("invalid position");
+    expect(setAnswerPosition).not.toHaveBeenCalled();
+  });
+});
+
+describe("setDayStickerAction", () => {
+  it("sets today's sticker and refreshes the page", async () => {
+    vi.mocked(isAdmin).mockResolvedValue(true);
+
+    expect(await setDayStickerAction(TODAY, "🔥")).toEqual({ ok: true });
+    expect(setDaySticker).toHaveBeenCalledWith(TODAY, "🔥");
+    expect(revalidatePath).toHaveBeenCalledWith("/");
+  });
+
+  it("clears today's sticker with null", async () => {
+    vi.mocked(isAdmin).mockResolvedValue(true);
+
+    expect(await setDayStickerAction(TODAY, null)).toEqual({ ok: true });
+    expect(clearDaySticker).toHaveBeenCalledWith(TODAY);
+    expect(setDaySticker).not.toHaveBeenCalled();
+  });
+
+  it("reports a day that has ended", async () => {
+    vi.mocked(isAdmin).mockResolvedValue(true);
+
+    expect(await setDayStickerAction("2026-09-29", "🔥")).toEqual({
+      ok: false,
+      reason: "day-ended",
+    });
+    expect(setDaySticker).not.toHaveBeenCalled();
+    expect(clearDaySticker).not.toHaveBeenCalled();
+  });
+
+  it("rejects an unknown sticker", async () => {
+    vi.mocked(isAdmin).mockResolvedValue(true);
+
+    await expect(setDayStickerAction(TODAY, "💩")).rejects.toThrow("invalid sticker");
+    expect(setDaySticker).not.toHaveBeenCalled();
+  });
+
+  it("refuses a non-admin", async () => {
+    vi.mocked(isAdmin).mockResolvedValue(false);
+
+    await expect(setDayStickerAction(TODAY, "🔥")).rejects.toThrow("unauthorized");
+    expect(setDaySticker).not.toHaveBeenCalled();
   });
 });

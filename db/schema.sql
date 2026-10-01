@@ -48,3 +48,17 @@ FROM (VALUES
   ('What am I carrying into tomorrow?', 3)
 ) AS q (text, position)
 WHERE NOT EXISTS (SELECT 1 FROM questions);
+
+-- Where a post-it sits on the board, as fractions of the space it can move
+-- in. NULL means "default grid position".
+ALTER TABLE answers ADD COLUMN IF NOT EXISTS board_x REAL
+  CHECK (board_x BETWEEN 0 AND 1);
+ALTER TABLE answers ADD COLUMN IF NOT EXISTS board_y REAL
+  CHECK (board_y BETWEEN 0 AND 1);
+
+-- One sticker per day, part of the private check-in.
+CREATE TABLE IF NOT EXISTS day_stickers (
+  day         DATE         PRIMARY KEY,
+  sticker     TEXT         NOT NULL,
+  updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
+);

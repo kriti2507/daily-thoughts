@@ -14,7 +14,7 @@ import {
 const INPUT =
   "min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-[15px] outline-none focus:border-[var(--border-strong)]";
 const PRIMARY_BUTTON =
-  "h-8 cursor-pointer rounded-md bg-foreground px-3 text-[13px] font-semibold text-[var(--background)] transition-opacity duration-200 disabled:cursor-not-allowed disabled:opacity-40";
+  "pop h-8 cursor-pointer rounded-md bg-[var(--brand)] px-3 text-[13px] font-semibold text-[var(--surface)] transition-opacity duration-200 disabled:cursor-not-allowed disabled:opacity-40";
 
 function IconButton({
   label,
@@ -32,7 +32,7 @@ function IconButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-[var(--text-muted)] transition-colors duration-200 hover:bg-[var(--border)] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-[var(--ink-soft)] transition-colors duration-200 hover:bg-[var(--border)] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
     >
       {children}
       <span className="sr-only">{label}</span>
@@ -91,7 +91,7 @@ export function QuestionEditor({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-center gap-1 rounded-xl border border-[var(--border)] bg-card px-3 py-2"
+      className="pop flex items-center gap-1 rounded-xl px-3 py-2"
     >
       <input
         value={draft}

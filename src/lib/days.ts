@@ -27,6 +27,8 @@ export function resolveTimeZone(configured: string): string {
 }
 
 // Resolved once at module scope: the zone can't change between renders.
+// In the browser DISPLAY_TIME_ZONE isn't available, so this is always UTC
+// there: client code must get "today" as a prop, never call `today()`.
 export const TIME_ZONE = resolveTimeZone(optionalEnv("DISPLAY_TIME_ZONE", "UTC"));
 
 const DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -141,4 +143,21 @@ export function formatMonthLabel(day: string): string {
     month: "long",
     year: "numeric",
   });
+}
+
+// The day `delta` days away, across month and year ends.
+export function shiftDay(day: string, delta: number): string {
+  const date = toUtcDate(day);
+  date.setUTCDate(date.getUTCDate() + delta);
+  return toDay(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
+}
+
+// What a page-a-day calendar prints: month name, day number, weekday.
+export function dayParts(day: string): { month: string; date: number; weekday: string } {
+  const date = toUtcDate(day);
+  return {
+    month: date.toLocaleDateString("en-US", { timeZone: "UTC", month: "long" }),
+    date: date.getUTCDate(),
+    weekday: date.toLocaleDateString("en-US", { timeZone: "UTC", weekday: "long" }),
+  };
 }

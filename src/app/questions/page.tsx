@@ -24,7 +24,7 @@ export default async function QuestionsPage() {
   if (questions === null) {
     return (
       <div className="mx-auto max-w-[720px] px-6 py-10">
-        <p className="text-[15px] text-[var(--text-secondary)]">
+        <p className="text-[15px] text-[var(--ink-soft)]">
           Couldn&apos;t reach the database. Check <code>DATABASE_URL</code>.
         </p>
       </div>
@@ -37,18 +37,18 @@ export default async function QuestionsPage() {
   return (
     <div className="mx-auto flex max-w-[720px] flex-col gap-6 px-6 py-10">
       <div className="flex flex-col gap-1">
-        <Link href="/" className="text-[13px] text-[var(--text-secondary)] hover:text-foreground">
+        <Link href="/" className="text-[13px] text-[var(--ink-soft)] hover:text-foreground">
           ← Back to today
         </Link>
-        <h1 className="font-heading text-2xl font-bold">Questions</h1>
-        <p className="text-[15px] text-[var(--text-secondary)]">
+        <h1 className="misprint font-heading text-3xl text-[var(--brand)]">Questions</h1>
+        <p className="text-[15px] text-[var(--ink-soft)]">
           Your daily check-in asks these, in this order. Rewording a question only
           changes future check-ins. Past answers keep the wording they were given.
         </p>
       </div>
 
       {active.length === 0 ? (
-        <p className="text-[15px] text-[var(--text-secondary)]">
+        <p className="text-[15px] text-[var(--ink-soft)]">
           No active questions. Add one below.
         </p>
       ) : (
@@ -70,7 +70,7 @@ export default async function QuestionsPage() {
       <AddQuestionForm />
 
       {retired.length > 0 && (
-        <details className="text-[15px] text-[var(--text-secondary)]">
+        <details className="text-[15px] text-[var(--ink-soft)]">
           <summary className="cursor-pointer">Retired ({retired.length})</summary>
           <ul className="mt-2 flex list-disc flex-col gap-1 pl-5">
             {retired.map((q) => (
