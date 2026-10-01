@@ -2,12 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   dayInZone,
+  dayParts,
   formatDayHeading,
   formatMonthLabel,
   monthGrid,
   monthRange,
   parseDay,
   resolveTimeZone,
+  shiftDay,
   shiftMonth,
 } from "@/lib/days";
 
@@ -125,5 +127,30 @@ describe("formatting", () => {
     expect(formatDayHeading("2026-09-30")).toBe("Wednesday, September 30, 2026");
     expect(formatDayHeading("2026-01-01")).toBe("Thursday, January 1, 2026");
     expect(formatMonthLabel("2026-09-30")).toBe("September 2026");
+  });
+});
+
+describe("shiftDay", () => {
+  it("moves within a month", () => {
+    expect(shiftDay("2026-10-01", 1)).toBe("2026-10-02");
+    expect(shiftDay("2026-10-15", -3)).toBe("2026-10-12");
+  });
+
+  it("crosses month and year ends in both directions", () => {
+    expect(shiftDay("2026-10-01", -1)).toBe("2026-09-30");
+    expect(shiftDay("2026-12-31", 1)).toBe("2027-01-01");
+    expect(shiftDay("2027-01-01", -1)).toBe("2026-12-31");
+  });
+
+  it("knows leap years", () => {
+    expect(shiftDay("2028-02-28", 1)).toBe("2028-02-29");
+    expect(shiftDay("2027-02-28", 1)).toBe("2027-03-01");
+  });
+});
+
+describe("dayParts", () => {
+  it("returns what a page-a-day calendar shows", () => {
+    expect(dayParts("2026-10-01")).toEqual({ month: "October", date: 1, weekday: "Thursday" });
+    expect(dayParts("2027-01-31")).toEqual({ month: "January", date: 31, weekday: "Sunday" });
   });
 });
