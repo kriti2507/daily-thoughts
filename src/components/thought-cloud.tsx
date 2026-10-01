@@ -75,7 +75,7 @@ export function ThoughtCloud({
     >
       <div
         className={cn(
-          "cloud group min-w-[180px] px-7 pb-6 pt-12",
+          "cloud group min-w-[180px] px-9 pb-9 pt-12",
           SIZE_CLASSES[size],
           isPuffing && "is-puffing",
         )}

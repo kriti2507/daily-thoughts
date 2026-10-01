@@ -96,7 +96,7 @@ export function ComposeDialog() {
       >
         <form
           onSubmit={handleSubmit}
-          className={cn("cloud flex flex-col gap-3 px-8 pb-8 pt-14", isRising && "is-rising")}
+          className={cn("cloud flex flex-col gap-3 px-10 pb-10 pt-14", isRising && "is-rising")}
         >
           <CloudShape />
           <h2 id="compose-title" className="font-heading text-xl">

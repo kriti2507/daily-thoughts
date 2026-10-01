@@ -199,11 +199,14 @@ body::after {
     box-shadow: var(--shadow);
   }
 
-  /* Clouds: an outlined union of a body and three bumps, drawn behind the
-     text. The outline is a stack of drop-shadows so it hugs the whole shape. */
+  /* Clouds are thought bubbles: a rounded body with puffs on every side and two
+     trailing circles below, drawn behind the text. The outline is a stack of
+     drop-shadows so it hugs the whole union as one shape. Puffs are fixed
+     sizes, so the cloud stays lumpy however long the thought. */
   .cloud {
     position: relative;
     isolation: isolate;
+    margin-bottom: 30px;
     rotate: var(--tilt, 0deg);
   }
   .bobbing {
@@ -221,26 +224,69 @@ body::after {
     border-radius: 9999px;
   }
   .cloud-shape > .cloud-body {
-    inset: 32px 0 0 0;
-    border-radius: 36px;
+    inset: 30px 14px 16px 14px;
+    border-radius: 44px;
   }
-  .cloud-shape > .cloud-bump-1 {
-    width: 56px;
-    height: 56px;
+  .cloud-shape > .cloud-top-1 {
+    width: 60px;
+    height: 60px;
     left: 12%;
-    top: 14px;
+    top: 12px;
   }
-  .cloud-shape > .cloud-bump-2 {
-    width: 80px;
-    height: 80px;
-    left: 38%;
+  .cloud-shape > .cloud-top-2 {
+    width: 84px;
+    height: 84px;
+    left: 36%;
     top: 0;
   }
-  .cloud-shape > .cloud-bump-3 {
+  .cloud-shape > .cloud-top-3 {
+    width: 56px;
+    height: 56px;
+    right: 12%;
+    top: 16px;
+  }
+  .cloud-shape > .cloud-bottom-1 {
+    width: 50px;
+    height: 50px;
+    left: 18%;
+    bottom: 0;
+  }
+  .cloud-shape > .cloud-bottom-2 {
+    width: 58px;
+    height: 58px;
+    left: 50%;
+    bottom: 2px;
+  }
+  .cloud-shape > .cloud-bottom-3 {
+    width: 42px;
+    height: 42px;
+    right: 14%;
+    bottom: 6px;
+  }
+  .cloud-shape > .cloud-left {
+    width: 56px;
+    height: 56px;
+    left: 0;
+    top: calc(50% - 20px);
+  }
+  .cloud-shape > .cloud-right {
     width: 52px;
     height: 52px;
-    right: 12%;
-    top: 18px;
+    right: 0;
+    top: calc(50% - 16px);
+  }
+  /* The tail hangs below the box; .cloud's margin-bottom makes room for it. */
+  .cloud-shape > .cloud-tail-1 {
+    width: 18px;
+    height: 18px;
+    left: 8px;
+    bottom: -16px;
+  }
+  .cloud-shape > .cloud-tail-2 {
+    width: 10px;
+    height: 10px;
+    left: -4px;
+    bottom: -30px;
   }
   .cloud.is-puffing {
     animation: puff 0.4s ease-in forwards;
