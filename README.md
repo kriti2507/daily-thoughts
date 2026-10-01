@@ -70,8 +70,9 @@ entirely. Rotating the secret signs out every browser.
 
 Each day is a page: that day's thoughts float as clouds in a "sky", and, when
 you're logged in as admin, its check-in sits below as post-its on a "board".
-Move between days with the tear-off calendar (top right on desktop; ▦ opens the
-month), the timeline dock at the bottom on phones, ←/→ or a sideways swipe.
+Move between days with the tear-off calendar (top right on desktop; its
+calendar button opens the month), the timeline dock at the bottom on phones,
+←/→ or a sideways swipe.
 `t` jumps to today. Today's post-its are blank notes you write on; "Stick it"
 (or ⌘/Ctrl+Enter) saves them, and you can edit until midnight in
 `DISPLAY_TIME_ZONE`, after which they're read-only. Blank answers are skipped.
