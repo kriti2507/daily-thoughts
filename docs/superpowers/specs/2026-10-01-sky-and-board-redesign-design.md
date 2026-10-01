@@ -52,13 +52,13 @@ tokens, never raw colours.
 | `--paper` (page) | `#FFF1DC` | `#E9EFE6` | `#1B221E` |
 | `--surface` (clouds, cards) | `#FFFFFF` | `#FFFFFF` | `#26302A` |
 | `--ink` (text, outlines) | `#111111` | `#33433A` | `#E3EBE4` |
-| `--ink-soft` (secondary text) | `#4A4038` | `#5C6E63` | `#A9B8AE` |
+| `--ink-soft` (secondary text) | `#4A4038` | `#52645A` | `#A9B8AE` |
 | `--brand` (title, selected) | `#2340FF` | `#3E5A4A` | `#9CC3AA` |
 | `--note-1` | `#FFE600` | `#F5EBCB` | `#5A5238` |
 | `--note-2` | `#FF48B0` | `#F0D9D9` | `#5A3F44` |
 | `--note-3` | `#9EE6FF` | `#D6E4EE` | `#3A4A57` |
 | `--note-4` | `#B8F5A0` | `#DDEAD3` | `#3E5040` |
-| `--stamp` | `#E5262B` | `#B4544F` | `#D98A84` |
+| `--stamp` | `#C8191F` | `#A64B46` | `#D98A84` |
 | `--line` (outline width) | `2.5px` | `0px` | `0px` |
 | `--shadow` | `4px 4px 0 var(--ink)` | `0 6px 14px rgb(62 90 74 / .15)` | `0 6px 14px rgb(0 0 0 / .35)` |
 
@@ -103,7 +103,8 @@ the month popover.
   fades, ~300ms), then `router.push("/?day=…")`. The new page drops in with a
   short settle animation, keyed on the day.
 - The month popover reuses the existing `MonthCalendar` grid (restyled) inside
-  a `<dialog>` / popover anchored to the calendar. Picking a day closes it.
+  a centred modal `<dialog>`. Picking a day closes it; the month arrows inside
+  it don't, so months can be browsed.
 - Next-day is allowed into the future, as the month grid already allows.
 
 ### Timeline dock (`timeline-dock.tsx`, client)
@@ -122,8 +123,9 @@ uses. `‹`/`›` at the ends move a month.
 
 ### Clouds (`thought-cloud.tsx`, `sky.tsx`)
 
-Each thought is a cloud: a `--surface` body with CSS bump circles
-(pseudo-elements and two spans), `--line` outline, `--shadow`. It stretches with
+Each thought is a cloud: a `--surface` body with three bump circles, outlined
+as one shape by a stack of drop-shadow filters (`--cloud-filter`; soft shadow
+only in calm). It stretches with
 its content, so any length up to 4096 characters fits: a pure helper in
 `lib/clouds.ts`,
 `cloudSize(text)` returns `"s" | "m" | "l"` (≤ 60, ≤ 240, longer) and sets
@@ -137,8 +139,8 @@ max-width and padding. Time and "via Telegram/web" sit small under the text.
 - **Delete** (owner): a small × on hover/focus. On confirm the cloud plays a
   puff (scale up, blur, fade, ~400ms) before the server action runs; if the
   action fails it reappears and the existing error alert shows.
-- **AI slot:** the cloud renders an empty `slot` region (top-left sticker,
-  bottom tape) that renders nothing today.
+- **AI slot:** a comment in `thought-cloud.tsx` marks where the mood sticker
+  (top-left) and pattern tape (bottom) go; nothing is rendered today.
 - Empty sky: a sun sticker and "Clear skies. No thoughts this day."
 
 ### Mind weather (`lib/weather.ts`)
@@ -163,7 +165,8 @@ Replaces `CheckinForm` and `CheckinAnswers`.
 - **Today:** one blank post-it per active question, colours cycling `--note-1…4`,
   each tilted from `cloudJitter(questionId)`. The question is the small
   uppercase label (`<label>`); the answer is a borderless `<textarea>` in
-  Caveat that grows with its text. One "Stick it" button and ⌘/Ctrl+Enter save
+  Caveat (it grows with its text on phones; on desktop notes are a fixed
+  13rem × 12rem and scroll inside, so they can be placed freely). One "Stick it" button and ⌘/Ctrl+Enter save
   all answers through the existing `saveCheckinAction`, keeping every existing
   status (saved / day-ended / questions-changed / error) and draft-preserving
   behaviour. On success each filled note plays the slap animation (drop from
@@ -171,10 +174,10 @@ Replaces `CheckinForm` and `CheckinAnswers`.
   calendar.
 - **Past days:** the same notes, read-only, showing the stored question wording.
   "No check-in this day." if empty.
-- **No questions:** a single dashed post-it linking to `/questions`.
+- **No questions:** a dashed box linking to `/questions`.
 
-**Drag (desktop, owner, any day).** Notes are positioned on a board of fixed
-aspect ratio. A note with a saved position is placed at `(x, y)` as fractions
+**Drag (desktop, owner, any day).** Notes are positioned on a board whose
+height follows the number of rows (four notes per row, at least 20rem). A note with a saved position is placed at `(x, y)` as fractions
 (0–1) of the board; notes without one fall into a default grid. Pointer events
 drag a note (with a lifted shadow); on drop the position is saved through
 `moveNoteAction`. Keyboard: a focused note's drag handle moves it with arrow
@@ -209,7 +212,8 @@ A small client component mounted once on the page:
   vertical, not starting on a note or textarea) moves a day.
 
 Pure helpers in `lib/day-keys.ts`: `shiftDay(day, delta)` (added to
-`lib/days.ts`), `keyToAction(event)`, `swipeToDelta(dx, dy)`.
+`lib/days.ts`), `keyToAction(key, { modified, busy })` (the component works
+out `busy` from the focused element and open dialogs), `swipeToDelta(dx, dy)`.
 
 ## Motion
 
@@ -245,9 +249,11 @@ Library additions:
 
 - `lib/checkins.ts`: `Answer` gains `boardX`/`boardY` (`number | null`);
   `setAnswerPosition(day, questionId, x, y)`.
-- `lib/stickers.ts`: `STICKERS` (the fixed list), `getDaySticker(day)`,
-  `listDayStickers(from, to)`, `setDaySticker(day, sticker)`,
-  `clearDaySticker(day)`.
+- `lib/sticker-list.ts` (no database, safe on the client): `STICKERS`,
+  `STICKER_NAMES`, `isSticker`.
+- `lib/stickers.ts`: `listDayStickers(from, to)`, `setDaySticker(day, sticker)`,
+  `clearDaySticker(day)`. The page reads the day's sticker from the month's
+  list, so there's no `getDaySticker`.
 
 ## Server actions
 
