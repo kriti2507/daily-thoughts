@@ -1555,7 +1555,7 @@ git commit -m "feat: Riso Pop and Sage Morning themes with a calm/loud switch"
 // tells the calendar to stamp, and so on. Browser only.
 export const FLIP_DAY = "daily-thoughts:flip-day"; // detail: { delta: -1 | 1 }
 export const OPEN_COMPOSER = "daily-thoughts:open-composer";
-export const CHECKIN_SAVED = "daily-thoughts:checkin-saved"; // detail: { filled: boolean }
+export const CHECKIN_SAVED = "daily-thoughts:checkin-saved"; // detail: { day: string; filled: boolean }
 
 export function emit(name: string, detail?: unknown): void {
   window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -2548,7 +2548,7 @@ export function Board({
           setSaved(new Set(filled));
           setStatus("saved");
           setSlapRound((round) => round + 1);
-          emit(CHECKIN_SAVED, { filled: filled.length > 0 });
+          emit(CHECKIN_SAVED, { day, filled: filled.length > 0 });
           // Notes dragged before they existed keep where they were put.
           for (const id of filled) {
             const position = positions[id];
@@ -2648,7 +2648,7 @@ export function Board({
                 maxLength={4096}
                 rows={3}
                 placeholder="…"
-                className="mt-2 min-h-16 w-full flex-1 resize-none overflow-auto bg-transparent font-accent text-[22px] leading-tight outline-none field-sizing-content placeholder:text-[var(--ink-soft)] md:field-sizing-fixed"
+                className="mt-2 min-h-16 w-full flex-1 resize-none overflow-auto bg-transparent font-accent text-[22px] leading-tight outline-none field-sizing-content placeholder:text-[var(--ink)] placeholder:opacity-50 md:field-sizing-fixed"
               />
             ) : (
               <p className="mt-2 flex-1 overflow-auto whitespace-pre-wrap break-words font-accent text-[22px] leading-tight">
