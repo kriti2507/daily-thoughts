@@ -295,6 +295,10 @@ body::after {
     scale: 1.04;
     box-shadow: var(--shadow-lift);
   }
+  /* The last note moved sits above its neighbours, below one being dragged. */
+  .note.is-raised {
+    z-index: 5;
+  }
   .note.is-slapping {
     animation: slap 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
     animation-delay: var(--slap-delay, 0s);
@@ -321,7 +325,8 @@ body::after {
     .board .note {
       position: absolute;
       height: var(--note-h);
-      overflow: hidden;
+      /* No overflow: hidden — it would clip the tape; the note's text areas
+         scroll instead. */
       left: calc(var(--x) * (100% - var(--note-w)));
       top: calc(var(--y) * (100% - var(--note-h)));
     }

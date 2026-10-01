@@ -44,6 +44,8 @@ const NUDGES: Record<string, [number, number]> = {
 };
 const SLAP_STAGGER_S = 0.06;
 const ROW_REM = 14; // a 12rem note plus room to breathe
+// One row alone would leave only 2rem to drag a note up or down in.
+const MIN_BOARD_REM = 20;
 
 // The check-in as post-its. Today's notes are written on and saved together;
 // any day's notes can be dragged around on desktop by their tape.
@@ -61,11 +63,14 @@ export function Board({
   const [drafts, setDrafts] = useState<Record<number, string>>(() =>
     Object.fromEntries(notes.map((note) => [note.id, note.text])),
   );
-  const [positions, setPositions] = useState<Record<number, NotePosition>>(() =>
+  const [initialPositions] = useState<Record<number, NotePosition>>(() =>
     Object.fromEntries(
       notes.flatMap((note) => (note.position ? [[note.id, note.position] as const] : [])),
     ),
   );
+  const [positions, setPositions] = useState(initialPositions);
+  // Mirrors positions so a save that resolves later sees moves made meanwhile.
+  const positionsRef = useRef(initialPositions);
   // Notes whose answer exists in the database, so their position can be saved.
   const [saved, setSaved] = useState<Set<number>>(
     () => new Set(notes.filter((note) => note.text.trim().length > 0).map((note) => note.id)),
@@ -73,6 +78,8 @@ export function Board({
   const [status, setStatus] = useState<Status>("idle");
   const [slapRound, setSlapRound] = useState(0);
   const [draggingId, setDraggingId] = useState<number | null>(null);
+  // Kept on top after it's dropped, so it doesn't slide under its neighbours.
+  const [lastMovedId, setLastMovedId] = useState<number | null>(null);
   const drag = useRef<{
     id: number;
     startX: number;
@@ -100,6 +107,7 @@ export function Board({
   }
 
   function place(id: number, position: NotePosition) {
+    positionsRef.current = { ...positionsRef.current, [id]: position };
     setPositions((current) => ({ ...current, [id]: position }));
   }
 
@@ -111,6 +119,7 @@ export function Board({
     event.currentTarget.setPointerCapture(event.pointerId);
     drag.current = { id, startX: event.clientX, startY: event.clientY, origin, latest: null };
     setDraggingId(id);
+    setLastMovedId(id);
   }
 
   function handlePointerMove(event: PointerEvent<HTMLButtonElement>) {
@@ -142,12 +151,14 @@ export function Board({
 
   function handleTapeKeyDown(event: KeyboardEvent<HTMLButtonElement>, id: number, origin: NotePosition) {
     const step = NUDGES[event.key];
-    if (!step) {
+    // Phones lay notes out in a grid, so positions would do nothing there.
+    if (!step || !window.matchMedia(DESKTOP).matches) {
       return;
     }
     event.preventDefault();
     const next = { x: clamp01(origin.x + step[0]), y: clamp01(origin.y + step[1]) };
     nudged.current = { id, position: next };
+    setLastMovedId(id);
     place(id, next);
   }
 
@@ -184,16 +195,18 @@ export function Board({
           setStatus("saved");
           setSlapRound((round) => round + 1);
           emit(CHECKIN_SAVED, { day, filled: filled.length > 0 });
-          // Notes dragged before they existed keep where they were put.
+          // Notes dragged before they existed keep where they were put. Read
+          // from the ref: the note may have moved again while this was saving.
           for (const id of filled) {
-            const position = positions[id];
+            const position = positionsRef.current[id];
             if (movedUnsaved.current.has(id) && position) {
               moveNoteAction(day, id, position.x, position.y).catch((error) => {
                 console.error("failed to move note", error);
               });
             }
+            // Only notes that now exist; still-empty ones wait for their save.
+            movedUnsaved.current.delete(id);
           }
-          movedUnsaved.current.clear();
         } else if (result.reason === "questions-changed") {
           setStatus("questions-changed");
           // Component state survives a router refresh — only the day changing
@@ -237,15 +250,25 @@ export function Board({
     );
   }
 
+  const helpId = `board-help-${day}`;
   const board = (
     <div
       ref={boardRef}
       className="board"
-      style={{ "--board-h": `${boardRows(notes.length) * ROW_REM}rem` } as CSSProperties}
+      style={
+        {
+          "--board-h": `${Math.max(boardRows(notes.length) * ROW_REM, MIN_BOARD_REM)}rem`,
+        } as CSSProperties
+      }
     >
+      <p id={helpId} className="sr-only">
+        Drag a note by its tape, or focus the tape and use the arrow keys, to move it.
+      </p>
       {notes.map((note, index) => {
         const position = positionOf(note.id, index);
-        const isSlapping = slapRound > 0 && (drafts[note.id] ?? "").trim().length > 0;
+        // From the set saved at save time, not live drafts: typing into an
+        // empty note must not flip its key and remount the textarea.
+        const isSlapping = slapRound > 0 && saved.has(note.id);
         return (
           <PostIt
             // A new key per save round restarts the slap animation.
@@ -258,11 +281,13 @@ export function Board({
             isSlapping={isSlapping}
             slapDelay={index * SLAP_STAGGER_S}
             isDragging={draggingId === note.id}
+            isRaised={lastMovedId === note.id}
             handle={
               <button
                 type="button"
                 data-keys-local
                 aria-label={`Move note: ${note.label}`}
+                aria-describedby={helpId}
                 className="note-tape"
                 onPointerDown={(event) => handlePointerDown(event, note.id, position)}
                 onPointerMove={handlePointerMove}
@@ -286,7 +311,7 @@ export function Board({
                 className="mt-2 min-h-16 w-full flex-1 resize-none overflow-auto bg-transparent font-accent text-[22px] leading-tight outline-none field-sizing-content placeholder:text-[var(--ink)] placeholder:opacity-50 md:field-sizing-fixed"
               />
             ) : (
-              <p className="mt-2 flex-1 overflow-auto whitespace-pre-wrap break-words font-accent text-[22px] leading-tight">
+              <p className="mt-2 min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words font-accent text-[22px] leading-tight">
                 {note.text}
               </p>
             )}

@@ -15,6 +15,9 @@ export function DayStickerPicker({ day, initial }: { day: string; initial: strin
   const router = useRouter();
 
   function pick(sticker: Sticker) {
+    if (isPending) {
+      return;
+    }
     const previous = chosen;
     const next = sticker === chosen ? null : sticker;
     setChosen(next);
@@ -46,10 +49,11 @@ export function DayStickerPicker({ day, initial }: { day: string; initial: strin
             type="button"
             aria-pressed={sticker === chosen}
             aria-label={STICKER_NAMES[sticker]}
-            disabled={isPending}
+            // aria-disabled, not disabled: disabling the focused button blurs it.
+            aria-disabled={isPending}
             onClick={() => pick(sticker)}
             className={cn(
-              "flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl text-2xl transition-transform duration-150 hover:-rotate-6 hover:scale-110 disabled:cursor-wait",
+              "flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl text-2xl transition-transform duration-150 hover:-rotate-6 hover:scale-110 aria-disabled:cursor-wait",
               sticker === chosen ? "pop scale-110 bg-[var(--note-1)]" : "opacity-70 hover:opacity-100",
             )}
           >

@@ -21,6 +21,7 @@ export function PostIt({
   isSlapping = false,
   slapDelay = 0,
   isDragging = false,
+  isRaised = false,
   children,
 }: {
   label: string;
@@ -32,11 +33,12 @@ export function PostIt({
   isSlapping?: boolean;
   slapDelay?: number;
   isDragging?: boolean;
+  isRaised?: boolean;
   children: ReactNode;
 }) {
   return (
     <div
-      className={cn("note", isSlapping && "is-slapping", isDragging && "is-dragging")}
+      className={cn("note", isSlapping && "is-slapping", isDragging && "is-dragging", isRaised && "is-raised")}
       style={
         {
           "--note": color,
