@@ -132,13 +132,15 @@ export default async function HomePage({
           >
             Check-in
           </h2>
+          {/* Distinct keys: siblings sharing one would confuse React's
+              reconciliation and can leave a stale board behind. */}
           <Board
-            key={day}
+            key={`board-${day}`}
             day={day}
             editable={isToday}
             notes={boardNotes(isToday, data.questions, data.answers)}
           />
-          {isToday && <DayStickerPicker key={day} day={day} initial={sticker} />}
+          {isToday && <DayStickerPicker key={`sticker-${day}`} day={day} initial={sticker} />}
         </section>
       )}
 

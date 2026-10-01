@@ -22,6 +22,10 @@ export function DayNavigation({ canCompose }: { canCompose: boolean }) {
   const router = useRouter();
 
   const onKey = useEffectEvent((event: KeyboardEvent) => {
+    // A held key would otherwise flip day after day, a page load each.
+    if (event.repeat) {
+      return;
+    }
     const action = keyToAction(event.key, {
       modified: event.metaKey || event.ctrlKey || event.altKey,
       busy: within(event.target, OWNS_KEYS) || document.querySelector("dialog[open]") !== null,

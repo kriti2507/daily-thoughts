@@ -28,7 +28,10 @@ export function Sky({
   weather: MindWeather;
 }) {
   return (
-    <section aria-label="Thoughts" data-weather={weather.kind} className="sky">
+    <section aria-labelledby="thoughts-heading" data-weather={weather.kind} className="sky">
+      <h2 id="thoughts-heading" className="sr-only">
+        Thoughts
+      </h2>
       {messages.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-10 text-center">
           <span aria-hidden className="text-5xl">
