@@ -3,7 +3,7 @@
 // tells the calendar to stamp, and so on. Browser only.
 export const FLIP_DAY = "daily-thoughts:flip-day"; // detail: { delta: -1 | 1 }
 export const OPEN_COMPOSER = "daily-thoughts:open-composer";
-export const CHECKIN_SAVED = "daily-thoughts:checkin-saved"; // detail: { filled: boolean }
+export const CHECKIN_SAVED = "daily-thoughts:checkin-saved"; // detail: { day: string; filled: boolean }
 
 export function emit(name: string, detail?: unknown): void {
   window.dispatchEvent(new CustomEvent(name, { detail }));

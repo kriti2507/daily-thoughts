@@ -81,14 +81,15 @@ export function TimelineDock({
                     aria-hidden
                     className={cn(
                       "rounded-full",
-                      selected ? "h-3 w-3" : "h-2 w-2",
-                      withCheckin.has(cell)
-                        ? "bg-[var(--note-2)]"
-                        : withThoughts.has(cell)
-                          ? "bg-[var(--note-1)]"
-                          : selected
-                            ? "bg-[var(--ink)]"
-                            : "bg-[var(--paper)] opacity-30",
+                      // The selected day sits on a paper circle, where a note
+                      // colour can all but vanish, so it's always brand there.
+                      selected
+                        ? "h-3 w-3 bg-[var(--brand)]"
+                        : withCheckin.has(cell)
+                          ? "h-2 w-2 bg-[var(--note-2)]"
+                          : withThoughts.has(cell)
+                            ? "h-2 w-2 bg-[var(--note-1)]"
+                            : "h-2 w-2 bg-[var(--paper)] opacity-30",
                       cell === today &&
                         !selected &&
                         "ring-2 ring-[var(--note-1)] ring-offset-1 ring-offset-[var(--ink)]",

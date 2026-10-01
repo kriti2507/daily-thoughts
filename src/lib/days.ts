@@ -27,6 +27,8 @@ export function resolveTimeZone(configured: string): string {
 }
 
 // Resolved once at module scope: the zone can't change between renders.
+// In the browser DISPLAY_TIME_ZONE isn't available, so this is always UTC
+// there: client code must get "today" as a prop, never call `today()`.
 export const TIME_ZONE = resolveTimeZone(optionalEnv("DISPLAY_TIME_ZONE", "UTC"));
 
 const DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;

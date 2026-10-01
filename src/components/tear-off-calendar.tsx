@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { MonthPopover } from "@/components/month-popover";
@@ -31,14 +31,30 @@ export function TearOffCalendar({
   markedDays: string[];
 }) {
   const router = useRouter();
+  const pageRef = useRef<HTMLDivElement>(null);
+  const mounted = useRef(true);
   const [tearingDay, setTearingDay] = useState<string | null>(null);
-  // The day a save just stamped (plays the thunk), or null after a save that
-  // left the check-in empty.
-  const [stamped, setStamped] = useState<{ day: string; filled: boolean } | null>(null);
+  // The day a save just stamped, or a save that left the check-in empty.
+  // `thunked` marks the thunk as played, so coming back to the day (the page
+  // remounts by key) shows the stamp without replaying it.
+  const [stamped, setStamped] = useState<{
+    day: string;
+    filled: boolean;
+    thunked: boolean;
+  } | null>(null);
   const [monthOpen, setMonthOpen] = useState(false);
+
+  // A tear only lasts until the day moves on, however it moved (flip, back
+  // button, a link), so returning to a day never shows it torn.
+  const [shownDay, setShownDay] = useState(day);
+  if (shownDay !== day) {
+    setShownDay(day);
+    setTearingDay(null);
+  }
+
   const { month, date, weekday } = dayParts(day);
   const isTearing = tearingDay === day;
-  const justStamped = stamped?.day === day && stamped.filled;
+  const justStamped = stamped?.day === day && stamped.filled && !stamped.thunked;
   const showStamp = stamped?.day === day ? stamped.filled : checkedIn;
 
   async function flip(delta: number) {
@@ -46,23 +62,42 @@ export function TearOffCalendar({
       return;
     }
     setTearingDay(day);
-    await afterAnimation(TEAR_MS);
-    router.push(`/?day=${shiftDay(day, delta)}`);
+    // On phones the calendar sits in a hidden wrapper, so there's no tear to
+    // wait for; offsetParent is null when the page isn't rendered.
+    if (pageRef.current?.offsetParent !== null) {
+      await afterAnimation(TEAR_MS);
+    }
+    // The user may have left for another page during the wait; don't drag
+    // them back.
+    if (mounted.current) {
+      router.push(`/?day=${shiftDay(day, delta)}`);
+    }
   }
 
   const onFlip = useEffectEvent((delta: number) => {
     void flip(delta);
   });
-  const onSaved = useEffectEvent((filled: boolean) => {
-    setStamped({ day, filled });
-  });
+
+  // Set on every mount, not just the first: StrictMode's dev remount would
+  // otherwise leave it false.
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     function handleFlip(event: Event) {
       onFlip((event as CustomEvent<{ delta: number }>).detail.delta);
     }
+    // The save names its own day: the user may have flipped away while it
+    // was in flight.
     function handleSaved(event: Event) {
-      onSaved((event as CustomEvent<{ filled: boolean }>).detail.filled);
+      const { day: savedDay, filled } = (
+        event as CustomEvent<{ day: string; filled: boolean }>
+      ).detail;
+      setStamped({ day: savedDay, filled, thunked: false });
     }
     window.addEventListener(FLIP_DAY, handleFlip);
     window.addEventListener(CHECKIN_SAVED, handleSaved);
@@ -79,6 +114,7 @@ export function TearOffCalendar({
       </p>
       <div
         key={day}
+        ref={pageRef}
         className={cn(
           "tear-page pop-lg relative rounded-b-lg bg-[var(--surface)] px-2 pb-3 pt-2 text-center",
           isTearing ? "is-tearing" : "is-settling",
@@ -94,7 +130,14 @@ export function TearOffCalendar({
             {sticker}
           </span>
         )}
-        {showStamp && <span className={cn("stamp", justStamped && "is-thunking")}>Checked in</span>}
+        {showStamp && (
+          <span
+            className={cn("stamp", justStamped && "is-thunking")}
+            onAnimationEnd={() => setStamped((s) => s && { ...s, thunked: true })}
+          >
+            Checked in
+          </span>
+        )}
       </div>
       <div className="mt-3 flex items-center justify-between">
         <button type="button" onClick={() => flip(-1)} className={NAV_BUTTON}>

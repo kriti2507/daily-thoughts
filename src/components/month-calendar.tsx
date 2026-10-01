@@ -11,7 +11,8 @@ const NAV_LINK =
 
 // Links rather than client state: each day is its own URL, so the back button
 // and bookmarks work. prefetch is off because every link is a dynamic page
-// that hits the database. `onNavigate` lets the popover close on a pick.
+// that hits the database. `onNavigate` fires when a day is picked, so the
+// popover can close; the month arrows leave it open for browsing.
 export function MonthCalendar({
   selectedDay,
   today,
@@ -31,7 +32,6 @@ export function MonthCalendar({
         <Link
           href={`/?day=${shiftMonth(selectedDay, -1)}`}
           prefetch={false}
-          onClick={onNavigate}
           className={NAV_LINK}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -41,7 +41,6 @@ export function MonthCalendar({
         <Link
           href={`/?day=${shiftMonth(selectedDay, 1)}`}
           prefetch={false}
-          onClick={onNavigate}
           className={NAV_LINK}
         >
           <ChevronRight className="h-4 w-4" />
