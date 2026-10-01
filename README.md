@@ -60,24 +60,33 @@ new code on the old schema silently drops incoming Telegram messages.
 
 Set `ADMIN_SECRET` (e.g. `openssl rand -hex 32`), then visit
 `/admin?key=<ADMIN_SECRET>` once in your browser. That sets a cookie, and with
-it a **New entry** button appears in the header and a delete button on each
-message. Entries written on the page are stored alongside Telegram ones and
+it a **New thought** button appears in the header (or press `n`) and a delete button on each
+cloud. Entries written on the page are stored alongside Telegram ones and
 labelled "via web". Deleting removes the row from Postgres permanently. Without
 the cookie the page stays read-only; with `ADMIN_SECRET` unset, both are off
 entirely. Rotating the secret signs out every browser.
 
 ## Daily check-in
 
-The page is a month calendar. Click a day to see that day's thoughts and, when
-you're logged in as admin, that day's check-in. Today's check-in is a form with
-one box per question. You can come back and edit it until midnight in
-`DISPLAY_TIME_ZONE`, after which it's read-only. Blank answers are skipped.
+Each day is a page: that day's thoughts float as clouds in a "sky", and, when
+you're logged in as admin, its check-in sits below as post-its on a "board".
+Move between days with the tear-off calendar (top right on desktop; ▦ opens the
+month), the timeline dock at the bottom on phones, ←/→ or a sideways swipe.
+`t` jumps to today. Today's post-its are blank notes you write on; "Stick it"
+(or ⌘/Ctrl+Enter) saves them, and you can edit until midnight in
+`DISPLAY_TIME_ZONE`, after which they're read-only. Blank answers are skipped.
+Drag a note by its tape (desktop) to rearrange the board on any day. Pick one
+sticker for today to mark the mood; it shows on the calendar and the dock.
+
+The `calm · loud` switch in the header swaps the loud Riso Pop look for the
+quieter Sage Morning one, which also goes dark when your system is in dark
+mode.
 
 Manage the questions at `/questions` (the checklist icon in the header). You
 can add, reword, reorder and retire them. Each answer keeps a copy of the
 wording it was given, so rewording or retiring a question never changes past
 days. Check-ins are private: visitors see the calendar and thoughts, but not
-your answers or which days had a check-in.
+your answers, stickers, or which days had a check-in.
 
 ## Tests
 
