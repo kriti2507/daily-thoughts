@@ -3,16 +3,20 @@
 import { revalidatePath } from "next/cache";
 
 import { isAdmin } from "@/lib/admin";
+import { clamp01 } from "@/lib/board";
 import {
   addQuestion,
   deleteAnswer,
   listActiveQuestions,
   moveQuestion,
   retireQuestion,
+  setAnswerPosition,
   updateQuestionText,
   upsertAnswer,
 } from "@/lib/checkins";
-import { today } from "@/lib/days";
+import { parseDay, today } from "@/lib/days";
+import { isSticker } from "@/lib/sticker-list";
+import { clearDaySticker, setDaySticker } from "@/lib/stickers";
 
 // Same cap as a thought, so nothing written here is bigger than an entry.
 const MAX_ANSWER_LENGTH = 4096;
@@ -141,4 +145,51 @@ export async function retireQuestionAction(id: number): Promise<void> {
   await requireAdmin();
   await retireQuestion(requireId(id));
   refreshQuestions();
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+// Any day, not just today: moving a note changes the board, not the answer.
+export async function moveNoteAction(
+  day: string,
+  questionId: number,
+  x: number,
+  y: number,
+): Promise<void> {
+  await requireAdmin();
+  const validDay = parseDay(day);
+  if (validDay === null) {
+    throw new Error("invalid day");
+  }
+  const id = requireId(questionId);
+  if (!isFiniteNumber(x) || !isFiniteNumber(y)) {
+    throw new Error("invalid position");
+  }
+  await setAnswerPosition(validDay, id, clamp01(x), clamp01(y));
+  revalidatePath("/");
+}
+
+export type SetStickerResult = { ok: true } | { ok: false; reason: "day-ended" };
+
+// Today only, like the check-in it belongs to. `null` clears it.
+export async function setDayStickerAction(
+  day: string,
+  sticker: string | null,
+): Promise<SetStickerResult> {
+  await requireAdmin();
+  if (sticker !== null && !isSticker(sticker)) {
+    throw new Error("invalid sticker");
+  }
+  if (day !== today()) {
+    return { ok: false, reason: "day-ended" };
+  }
+  if (sticker === null) {
+    await clearDaySticker(day);
+  } else {
+    await setDaySticker(day, sticker);
+  }
+  revalidatePath("/");
+  return { ok: true };
 }
