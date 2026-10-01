@@ -1,11 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
+import type { NotePosition } from "@/lib/board";
 import { cn } from "@/lib/utils";
-
-export interface NotePosition {
-  x: number;
-  y: number;
-}
 
 const LABEL = "text-[11px] font-bold uppercase leading-snug tracking-wide";
 

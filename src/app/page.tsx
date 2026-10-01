@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 
 import { Board } from "@/components/board";
-import type { BoardNote } from "@/components/board";
 import { DayNavigation } from "@/components/day-navigation";
 import { DayStickerPicker } from "@/components/day-sticker-picker";
 import { Sky } from "@/components/sky";
 import { TearOffCalendar } from "@/components/tear-off-calendar";
 import { TimelineDock } from "@/components/timeline-dock";
 import { isAdmin } from "@/lib/admin";
+import { boardNotes } from "@/lib/board";
 import { listActiveQuestions, listAnswersForDay, listDaysWithAnswers } from "@/lib/checkins";
 import type { Answer, Question } from "@/lib/checkins";
 import { formatDayHeading, monthRange, parseDay, today } from "@/lib/days";
@@ -34,35 +34,6 @@ async function loadDay(day: string, isOwner: boolean) {
     isOwner ? listDayStickers(first, last) : ({} as Record<string, string>),
   ]);
   return { messages, messageDays, answerDays, answers, questions, stickers };
-}
-
-function savedPosition(answer: Answer | undefined) {
-  return answer && answer.boardX !== null && answer.boardY !== null
-    ? { x: answer.boardX, y: answer.boardY }
-    : null;
-}
-
-// Today's notes are the active questions; a past day's are the answers it got,
-// worded as they were then.
-function boardNotes(isToday: boolean, questions: Question[], answers: Answer[]): BoardNote[] {
-  if (!isToday) {
-    return answers.map((answer) => ({
-      id: answer.questionId,
-      label: answer.questionText,
-      text: answer.text,
-      position: savedPosition(answer),
-    }));
-  }
-  const byQuestion = new Map(answers.map((answer) => [answer.questionId, answer]));
-  return questions.map((question) => {
-    const answer = byQuestion.get(question.id);
-    return {
-      id: question.id,
-      label: question.text,
-      text: answer?.text ?? "",
-      position: savedPosition(answer),
-    };
-  });
 }
 
 export default async function HomePage({

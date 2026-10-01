@@ -7,17 +7,10 @@ import type { CSSProperties, FormEvent, KeyboardEvent, PointerEvent } from "reac
 
 import { moveNoteAction, saveCheckinAction } from "@/app/checkin-actions";
 import { PostIt } from "@/components/post-it";
-import type { NotePosition } from "@/components/post-it";
 import { boardRows, clamp01, defaultNotePosition, noteColor } from "@/lib/board";
+import type { BoardNote, NotePosition } from "@/lib/board";
 import { cloudJitter } from "@/lib/clouds";
 import { CHECKIN_SAVED, emit } from "@/lib/ui-events";
-
-export interface BoardNote {
-  id: number; // question id
-  label: string;
-  text: string;
-  position: NotePosition | null;
-}
 
 type Status = "idle" | "saved" | "day-ended" | "questions-changed" | "error";
 
