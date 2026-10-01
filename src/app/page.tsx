@@ -2,13 +2,14 @@ import type { ReactNode } from "react";
 
 import { CheckinAnswers } from "@/components/checkin-answers";
 import { CheckinForm } from "@/components/checkin-form";
-import { MessageList } from "@/components/message-list";
 import { MonthCalendar } from "@/components/month-calendar";
+import { Sky } from "@/components/sky";
 import { isAdmin } from "@/lib/admin";
 import { listActiveQuestions, listAnswersForDay, listDaysWithAnswers } from "@/lib/checkins";
 import type { Answer, Question } from "@/lib/checkins";
 import { formatDayHeading, monthRange, parseDay, today } from "@/lib/days";
 import { listDaysWithMessages, listMessagesForDay } from "@/lib/messages";
+import { mindWeather } from "@/lib/weather";
 
 export const dynamic = "force-dynamic";
 
@@ -93,14 +94,11 @@ export default async function HomePage({
               </div>
             )}
 
-            <div className="flex flex-col gap-3">
-              <SectionTitle>Thoughts</SectionTitle>
-              {data.messages.length === 0 ? (
-                <Notice>No thoughts this day.</Notice>
-              ) : (
-                <MessageList messages={data.messages} canDelete={isOwner} />
-              )}
-            </div>
+            <Sky
+              messages={data.messages}
+              canDelete={isOwner}
+              weather={mindWeather(data.messages.length)}
+            />
           </section>
         </>
       )}
