@@ -11,6 +11,9 @@ export interface Answer {
   questionId: number;
   questionText: string;
   text: string;
+  // Board position as fractions; null until the note is first moved.
+  boardX: number | null;
+  boardY: number | null;
 }
 
 type QuestionRow = { id: string; text: string; position: number; retired_at: Date | null };
@@ -48,8 +51,16 @@ export async function listAllQuestions(): Promise<Question[]> {
 
 export async function listAnswersForDay(day: string): Promise<Answer[]> {
   const sql = getSql();
-  const rows = await sql<{ question_id: string; question_text: string; text: string }[]>`
-    SELECT a.question_id, a.question_text, a.text
+  const rows = await sql<
+    {
+      question_id: string;
+      question_text: string;
+      text: string;
+      board_x: number | null;
+      board_y: number | null;
+    }[]
+  >`
+    SELECT a.question_id, a.question_text, a.text, a.board_x, a.board_y
     FROM answers a
     JOIN questions q ON q.id = a.question_id
     WHERE a.day = ${day}::date
@@ -59,6 +70,8 @@ export async function listAnswersForDay(day: string): Promise<Answer[]> {
     questionId: Number(row.question_id),
     questionText: row.question_text,
     text: row.text,
+    boardX: row.board_x,
+    boardY: row.board_y,
   }));
 }
 
@@ -92,6 +105,22 @@ export async function upsertAnswer(day: string, questionId: number, text: string
 export async function deleteAnswer(day: string, questionId: number): Promise<void> {
   const sql = getSql();
   await sql`DELETE FROM answers WHERE day = ${day}::date AND question_id = ${questionId}`;
+}
+
+// Only moves an answer that exists; a note never saved has nowhere to keep
+// its position. `upsertAnswer` leaves these columns alone, so a re-save keeps
+// the note where it was.
+export async function setAnswerPosition(
+  day: string,
+  questionId: number,
+  x: number,
+  y: number,
+): Promise<void> {
+  const sql = getSql();
+  await sql`
+    UPDATE answers SET board_x = ${x}, board_y = ${y}
+    WHERE day = ${day}::date AND question_id = ${questionId}
+  `;
 }
 
 export async function addQuestion(text: string): Promise<void> {
