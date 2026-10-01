@@ -40,7 +40,7 @@ export default async function QuestionsPage() {
         <Link href="/" className="text-[13px] text-[var(--text-secondary)] hover:text-foreground">
           ← Back to today
         </Link>
-        <h1 className="font-heading text-2xl font-bold">Questions</h1>
+        <h1 className="misprint font-heading text-3xl text-[var(--brand)]">Questions</h1>
         <p className="text-[15px] text-[var(--text-secondary)]">
           Your daily check-in asks these, in this order. Rewording a question only
           changes future check-ins. Past answers keep the wording they were given.
