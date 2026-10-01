@@ -13,10 +13,10 @@ export function mindWeather(thoughtCount: number): MindWeather {
     return { kind: "clear", icon: "☀️", label: "Clear skies" };
   }
   if (thoughtCount <= 3) {
-    return { kind: "fair", icon: "🌤", label: "Fair, a few clouds" };
+    return { kind: "fair", icon: "🌤️", label: "Fair, a few clouds" };
   }
   if (thoughtCount <= 7) {
     return { kind: "cloudy", icon: "☁️", label: "Cloudy mind" };
   }
-  return { kind: "stormy", icon: "⛈", label: "Stormy mind" };
+  return { kind: "stormy", icon: "⛈️", label: "Stormy mind" };
 }

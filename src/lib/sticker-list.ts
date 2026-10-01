@@ -1,15 +1,15 @@
 // Kept apart from lib/stickers.ts (the database side) so client components
 // can import the list without pulling in the database driver.
-export const STICKERS = ["☀️", "🌤", "🌧", "⛈", "🔥", "🌱", "🌈", "⚡️", "🫠", "😌"] as const;
+export const STICKERS = ["☀️", "🌤️", "🌧", "⛈️", "🔥", "🌱", "🌈", "⚡️", "🫠", "😌"] as const;
 
 export type Sticker = (typeof STICKERS)[number];
 
 // Read out by screen readers in place of the emoji.
 export const STICKER_NAMES: Record<Sticker, string> = {
   "☀️": "sunny",
-  "🌤": "bright",
+  "🌤️": "bright",
   "🌧": "rainy",
-  "⛈": "stormy",
+  "⛈️": "stormy",
   "🔥": "on fire",
   "🌱": "growing",
   "🌈": "hopeful",
