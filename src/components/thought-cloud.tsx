@@ -68,7 +68,7 @@ export function ThoughtCloud({
       style={
         {
           "--bob-duration": `${bobSeconds}s`,
-          "--bob-delay": `${bobDelay}s`,
+          "--bob-delay": `-${bobDelay}s`,
           marginTop: offsetY,
         } as CSSProperties
       }
@@ -83,7 +83,7 @@ export function ThoughtCloud({
       >
         <CloudShape />
         {/* Room for the AI day: a mood sticker top-left, a pattern tape along the bottom. */}
-        <p className="whitespace-pre-wrap break-words leading-snug">{text}</p>
+        <p className="whitespace-pre-wrap wrap-anywhere leading-snug">{text}</p>
         <div className="mt-2 flex items-center justify-between gap-2 text-[11px] font-medium text-[var(--ink-soft)]">
           <span>
             <time dateTime={isoTime}>{time}</time> · via {source}
