@@ -39,8 +39,14 @@ export default async function RootLayout({
   const canWrite = await isAdmin();
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${bricolage.variable} ${inter.variable} ${caveat.variable} antialiased`}>
+    // The font variables go on <html>, where `font-sans` is applied; on <body>
+    // they'd be out of reach and the page would fall back to a serif.
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${bricolage.variable} ${inter.variable} ${caveat.variable}`}
+    >
+      <body className="antialiased">
         <ThemeProvider>
           <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b-[length:var(--line)] border-[var(--ink)] bg-[var(--paper)]/90 px-4 py-4 backdrop-blur-md sm:px-10">
             <Link href="/" className="flex items-center gap-3">
