@@ -36,7 +36,7 @@ export function buildRequest(
       },
     );
   }
-  const state =
+  const state: Record<string, string> =
     entry.kind === "answer" ? { prompt: entry.prompt, entry: entry.text } : { entry: entry.text };
   return { state, questions };
 }
