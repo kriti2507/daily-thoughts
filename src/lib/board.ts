@@ -16,6 +16,7 @@ export interface BoardNote {
   label: string;
   text: string;
   position: NotePosition | null;
+  tags: string[];
 }
 
 const NOTE_COLORS = ["var(--note-1)", "var(--note-2)", "var(--note-3)", "var(--note-4)"];
@@ -47,14 +48,20 @@ function savedPosition(answer: Answer | undefined): NotePosition | null {
 }
 
 // Today's notes are the active questions; a past day's are the answers it got,
-// worded as they were then.
-export function boardNotes(isToday: boolean, questions: Question[], answers: Answer[]): BoardNote[] {
+// worded as they were then. `tags` are the day's categories by question id.
+export function boardNotes(
+  isToday: boolean,
+  questions: Question[],
+  answers: Answer[],
+  tags: Record<number, string[]> = {},
+): BoardNote[] {
   if (!isToday) {
     return answers.map((answer) => ({
       id: answer.questionId,
       label: answer.questionText,
       text: answer.text,
       position: savedPosition(answer),
+      tags: tags[answer.questionId] ?? [],
     }));
   }
   const byQuestion = new Map(answers.map((answer) => [answer.questionId, answer]));
@@ -65,6 +72,7 @@ export function boardNotes(isToday: boolean, questions: Question[], answers: Ans
       label: question.text,
       text: answer?.text ?? "",
       position: savedPosition(answer),
+      tags: answer ? (tags[question.id] ?? []) : [],
     };
   });
 }

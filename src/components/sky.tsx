@@ -22,10 +22,13 @@ export function Sky({
   messages,
   canDelete,
   weather,
+  tags,
 }: {
   messages: Message[];
   canDelete: boolean;
   weather: MindWeather;
+  // Categories by message id; empty for visitors.
+  tags: Record<number, string[]>;
 }) {
   return (
     <section aria-labelledby="thoughts-heading" data-weather={weather.kind} className="sky">
@@ -52,6 +55,7 @@ export function Sky({
               isoTime={message.sentAt.toISOString()}
               source={SOURCE_LABELS[message.source]}
               canDelete={canDelete}
+              tags={tags[message.id] ?? []}
             />
           ))}
         </ul>

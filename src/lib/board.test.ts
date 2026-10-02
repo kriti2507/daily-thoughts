@@ -60,8 +60,8 @@ describe("boardNotes", () => {
     const questions = [question(2, "How are you?"), question(1, "What did you learn?")];
     const answers = [answer(1, { text: "Vitest", boardX: 0.25, boardY: 0.75 })];
     expect(boardNotes(true, questions, answers)).toEqual([
-      { id: 2, label: "How are you?", text: "", position: null },
-      { id: 1, label: "What did you learn?", text: "Vitest", position: { x: 0.25, y: 0.75 } },
+      { id: 2, label: "How are you?", text: "", position: null, tags: [] },
+      { id: 1, label: "What did you learn?", text: "Vitest", position: { x: 0.25, y: 0.75 }, tags: [] },
     ]);
   });
 
@@ -73,9 +73,18 @@ describe("boardNotes", () => {
       answer(3, { questionText: "Retired question", text: "gone now" }),
     ];
     expect(boardNotes(false, questions, answers)).toEqual([
-      { id: 1, label: "Original wording", text: "fine", position: { x: 0, y: 1 } },
-      { id: 3, label: "Retired question", text: "gone now", position: null },
+      { id: 1, label: "Original wording", text: "fine", position: { x: 0, y: 1 }, tags: [] },
+      { id: 3, label: "Retired question", text: "gone now", position: null, tags: [] },
     ]);
+  });
+
+  it("tags each answered note with its categories", () => {
+    const questions = [question(1, "How are you?"), question(2, "What's next?")];
+    const answers = [answer(1, { text: "Tired of work" })];
+    const tags = { 1: ["Work"], 2: ["Stale tag"] };
+
+    expect(boardNotes(true, questions, answers, tags).map((note) => note.tags)).toEqual([["Work"], []]);
+    expect(boardNotes(false, questions, answers, tags).map((note) => note.tags)).toEqual([["Work"]]);
   });
 
   it("has a position only when both coordinates are saved", () => {

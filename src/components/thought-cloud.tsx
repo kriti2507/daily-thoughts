@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { X } from "lucide-react";
 
 import { deleteMessageAction } from "@/app/actions";
+import { CategoryTapes } from "@/components/category-tapes";
 import { CloudShape } from "@/components/cloud-shape";
 import { cloudJitter } from "@/lib/clouds";
 import type { CloudSize } from "@/lib/clouds";
@@ -27,6 +28,7 @@ export function ThoughtCloud({
   isoTime,
   source,
   canDelete,
+  tags,
 }: {
   id: number;
   text: string;
@@ -35,6 +37,7 @@ export function ThoughtCloud({
   isoTime: string;
   source: string;
   canDelete: boolean;
+  tags: string[];
 }) {
   const [isPuffing, setIsPuffing] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -82,8 +85,8 @@ export function ThoughtCloud({
         style={{ "--tilt": `${tilt}deg` } as CSSProperties}
       >
         <CloudShape />
-        {/* Room for the AI day: a mood sticker top-left, a pattern tape along the bottom. */}
         <p className="whitespace-pre-wrap wrap-anywhere leading-snug">{text}</p>
+        <CategoryTapes tags={tags} />
         <div className="mt-2 flex items-center justify-between gap-2 text-[11px] font-medium text-[var(--ink-soft)]">
           <span>
             <time dateTime={isoTime}>{time}</time> · via {source}

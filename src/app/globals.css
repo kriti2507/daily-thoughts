@@ -358,6 +358,21 @@ body::after {
     background: color-mix(in srgb, var(--surface) 70%, transparent);
     border: var(--line) solid var(--ink);
   }
+  /* A category on a cloud or post-it: a short strip of tape, each one at a
+     slightly different angle. */
+  .category-tape {
+    padding: 0 0.4rem;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--ink);
+    background: color-mix(in srgb, var(--note-1) 75%, transparent);
+    border: 1px solid var(--ink);
+    rotate: -2deg;
+  }
+  .category-tape:nth-child(even) {
+    rotate: 1.5deg;
+  }
   @media (min-width: 48rem) {
     .board {
       --note-w: 13rem;
