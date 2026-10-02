@@ -62,3 +62,46 @@ CREATE TABLE IF NOT EXISTS day_stickers (
   sticker     TEXT         NOT NULL,
   updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
+
+-- Categories every entry is classified into. Like questions, they are retired,
+-- never deleted. `updated_at` moves when the wording changes, which makes every
+-- earlier classification against it stale.
+CREATE TABLE IF NOT EXISTS categories (
+  id          BIGSERIAL    PRIMARY KEY,
+  text        TEXT         NOT NULL,
+  position    INTEGER      NOT NULL,
+  retired_at  TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+-- Starter categories, inserted only into an empty table.
+INSERT INTO categories (text, position)
+SELECT c.text, c.position
+FROM (VALUES
+  ('Anxiety or worry', 1),
+  ('Self-doubt', 2),
+  ('Work', 3),
+  ('Relationships', 4),
+  ('Health and body', 5),
+  ('Gratitude and wins', 6),
+  ('Catastrophising', 7),
+  ('Planning and the future', 8)
+) AS c (text, position)
+WHERE NOT EXISTS (SELECT 1 FROM categories);
+
+-- One row per entry and category: Jev's probability that the entry fits it.
+-- An entry is a thought or a check-in answer, never both. `classified_at` is
+-- when the entry and category were read, so a later edit to either is newer
+-- and marks the row stale.
+CREATE TABLE IF NOT EXISTS classifications (
+  id             BIGSERIAL    PRIMARY KEY,
+  message_id     BIGINT       REFERENCES messages (id) ON DELETE CASCADE,
+  answer_id      BIGINT       REFERENCES answers (id) ON DELETE CASCADE,
+  category_id    BIGINT       NOT NULL REFERENCES categories (id),
+  probability    REAL         NOT NULL CHECK (probability BETWEEN 0 AND 1),
+  classified_at  TIMESTAMPTZ  NOT NULL,
+  CHECK ((message_id IS NULL) <> (answer_id IS NULL)),
+  UNIQUE (message_id, category_id),
+  UNIQUE (answer_id, category_id)
+);
