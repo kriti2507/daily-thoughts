@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import { isAdmin } from "@/lib/admin";
+import { classifyInBackground } from "@/lib/classify";
 import { deleteMessage, insertWebMessage } from "@/lib/messages";
 
 // Telegram's own cap, so an entry is the same size whichever way it arrives.
@@ -33,4 +35,5 @@ export async function createMessageAction(text: string): Promise<void> {
 
   await insertWebMessage(trimmed);
   revalidatePath("/");
+  after(classifyInBackground);
 }

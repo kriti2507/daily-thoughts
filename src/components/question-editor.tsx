@@ -5,6 +5,12 @@ import type { FormEvent, ReactNode } from "react";
 import { Archive, ArrowDown, ArrowUp } from "lucide-react";
 
 import {
+  addCategoryAction,
+  moveCategoryAction,
+  retireCategoryAction,
+  updateCategoryAction,
+} from "@/app/category-actions";
+import {
   addQuestionAction,
   moveQuestionAction,
   retireQuestionAction,
@@ -15,6 +21,35 @@ const INPUT =
   "min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-1.5 text-[15px] outline-none focus:border-[var(--border-strong)]";
 const PRIMARY_BUTTON =
   "pop h-8 cursor-pointer rounded-md bg-[var(--brand)] px-3 text-[13px] font-semibold text-[var(--surface)] transition-opacity duration-200 disabled:cursor-not-allowed disabled:opacity-40";
+
+// Questions and categories are edited the same way; only the words, limits
+// and actions differ.
+const KINDS = {
+  question: {
+    noun: "question",
+    maxLength: 500,
+    retireWarning: "Retire this question? Past answers keep it, but it won't be asked again.",
+    add: addQuestionAction,
+    update: updateQuestionAction,
+    move: moveQuestionAction,
+    retire: retireQuestionAction,
+  },
+  category: {
+    noun: "category",
+    maxLength: 60,
+    retireWarning: "Retire this category? Entries stop showing it, and new ones aren't sorted into it.",
+    add: addCategoryAction,
+    update: updateCategoryAction,
+    move: moveCategoryAction,
+    retire: retireCategoryAction,
+  },
+};
+
+export type EditorKind = keyof typeof KINDS;
+
+function capitalize(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
 
 function IconButton({
   label,
@@ -57,18 +92,21 @@ function useAction() {
 }
 
 export function QuestionEditor({
+  kind = "question",
   id,
   text,
   number,
   isFirst,
   isLast,
 }: {
+  kind?: EditorKind;
   id: number;
   text: string;
   number: number;
   isFirst: boolean;
   isLast: boolean;
 }) {
+  const { noun, maxLength, retireWarning, update, move, retire: retireAction } = KINDS[kind];
   const [draft, setDraft] = useState(text);
   const { isPending, run } = useAction();
   const trimmed = draft.trim();
@@ -77,15 +115,15 @@ export function QuestionEditor({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isDirty && trimmed.length > 0 && !isPending) {
-      run(() => updateQuestionAction(id, draft), "Couldn't save the question.");
+      run(() => update(id, draft), `Couldn't save the ${noun}.`);
     }
   }
 
   function retire() {
-    if (!window.confirm("Retire this question? Past answers keep it, but it won't be asked again.")) {
+    if (!window.confirm(retireWarning)) {
       return;
     }
-    run(() => retireQuestionAction(id), "Couldn't retire the question.");
+    run(() => retireAction(id), `Couldn't retire the ${noun}.`);
   }
 
   return (
@@ -96,8 +134,8 @@ export function QuestionEditor({
       <input
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
-        aria-label={`Question ${number}`}
-        maxLength={500}
+        aria-label={`${capitalize(noun)} ${number}`}
+        maxLength={maxLength}
         readOnly={isPending}
         className={INPUT}
       />
@@ -107,27 +145,28 @@ export function QuestionEditor({
         </button>
       )}
       <IconButton
-        label={`Move question ${number} up`}
+        label={`Move ${noun} ${number} up`}
         disabled={isFirst || isPending}
-        onClick={() => run(() => moveQuestionAction(id, "up"), "Couldn't move the question.")}
+        onClick={() => run(() => move(id, "up"), `Couldn't move the ${noun}.`)}
       >
         <ArrowUp className="h-3.5 w-3.5" />
       </IconButton>
       <IconButton
-        label={`Move question ${number} down`}
+        label={`Move ${noun} ${number} down`}
         disabled={isLast || isPending}
-        onClick={() => run(() => moveQuestionAction(id, "down"), "Couldn't move the question.")}
+        onClick={() => run(() => move(id, "down"), `Couldn't move the ${noun}.`)}
       >
         <ArrowDown className="h-3.5 w-3.5" />
       </IconButton>
-      <IconButton label={`Retire question ${number}`} disabled={isPending} onClick={retire}>
+      <IconButton label={`Retire ${noun} ${number}`} disabled={isPending} onClick={retire}>
         <Archive className="h-3.5 w-3.5" />
       </IconButton>
     </form>
   );
 }
 
-export function AddQuestionForm() {
+export function AddQuestionForm({ kind = "question" }: { kind?: EditorKind }) {
+  const { noun, maxLength, add } = KINDS[kind];
   const [draft, setDraft] = useState("");
   const { isPending, run } = useAction();
   const canAdd = draft.trim().length > 0 && !isPending;
@@ -135,7 +174,7 @@ export function AddQuestionForm() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (canAdd) {
-      run(() => addQuestionAction(draft), "Couldn't add the question.", () => setDraft(""));
+      run(() => add(draft), `Couldn't add the ${noun}.`, () => setDraft(""));
     }
   }
 
@@ -144,9 +183,9 @@ export function AddQuestionForm() {
       <input
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
-        placeholder="Add a question"
-        aria-label="New question"
-        maxLength={500}
+        placeholder={`Add a ${noun}`}
+        aria-label={`New ${noun}`}
+        maxLength={maxLength}
         readOnly={isPending}
         className={INPUT}
       />

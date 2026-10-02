@@ -89,6 +89,20 @@ wording it was given, so rewording or retiring a question never changes past
 days. Check-ins are private: visitors see the calendar and thoughts, but not
 your answers, stickers, or which days had a check-in.
 
+## Categories
+
+Every thought and check-in answer is sorted into categories by
+[TypeSafe](https://docs.typesafe.ai)'s Jev model, and shows the ones it fits
+as small tapes. An entry can fit several. Set `TYPESAFE_API_KEY` to turn it
+on. Without it, nothing is classified and the page works as before.
+
+Manage the categories on `/questions`, below the questions. Adding or
+rewording a category sorts every entry again. An entry is classified just
+after it's saved, without slowing the save down. For older entries, and after
+editing categories, the Categories section shows how many are waiting, and
+**Classify now** handles them a batch at a time. Like check-ins, categories
+are private: visitors never see them.
+
 ## Tests
 
 ```bash
@@ -104,4 +118,5 @@ npm test
 | `TELEGRAM_CHAT_ID` | yes | The only chat whose messages are stored. Must be numeric. |
 | `TELEGRAM_WEBHOOK_SECRET` | yes | Verified on every webhook request. |
 | `ADMIN_SECRET` | no | Enables writing and deleting from the page. See [Writing and deleting from the page](#writing-and-deleting-from-the-page). |
+| `TYPESAFE_API_KEY` | no | Enables sorting entries into categories. See [Categories](#categories). Server-side only. |
 | `DISPLAY_TIME_ZONE` | no | IANA zone name (e.g. `Asia/Tokyo`) for timestamps, and for where one day ends and the next begins. Defaults to `UTC`. An invalid zone or an offset like `+05:30` falls back to `UTC` with a logged warning. |

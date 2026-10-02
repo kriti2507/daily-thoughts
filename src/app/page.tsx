@@ -10,6 +10,8 @@ import { isAdmin } from "@/lib/admin";
 import { boardNotes } from "@/lib/board";
 import { listActiveQuestions, listAnswersForDay, listDaysWithAnswers } from "@/lib/checkins";
 import type { Answer, Question } from "@/lib/checkins";
+import { listTagsForDay } from "@/lib/classifications";
+import type { DayTags } from "@/lib/classifications";
 import { formatDayHeading, monthRange, parseDay, today } from "@/lib/days";
 import { listDaysWithMessages, listMessagesForDay } from "@/lib/messages";
 import { listDayStickers } from "@/lib/stickers";
@@ -22,18 +24,20 @@ function Notice({ children }: { children: ReactNode }) {
 }
 
 // Check-ins are private: visitors get neither the answers nor anything that
-// would reveal which days had one (dots, stamps, stickers).
+// would reveal which days had one (dots, stamps, stickers). Categories are
+// private too, even on public thoughts.
 async function loadDay(day: string, isOwner: boolean) {
   const { first, last } = monthRange(day);
-  const [messages, messageDays, answerDays, answers, questions, stickers] = await Promise.all([
+  const [messages, messageDays, answerDays, answers, questions, stickers, tags] = await Promise.all([
     listMessagesForDay(day),
     listDaysWithMessages(first, last),
     isOwner ? listDaysWithAnswers(first, last) : ([] as string[]),
     isOwner ? listAnswersForDay(day) : ([] as Answer[]),
     isOwner ? listActiveQuestions() : ([] as Question[]),
     isOwner ? listDayStickers(first, last) : ({} as Record<string, string>),
+    isOwner ? listTagsForDay(day) : ({ messages: {}, answers: {} } as DayTags),
   ]);
-  return { messages, messageDays, answerDays, answers, questions, stickers };
+  return { messages, messageDays, answerDays, answers, questions, stickers, tags };
 }
 
 export default async function HomePage({
@@ -93,7 +97,7 @@ export default async function HomePage({
         </div>
       </div>
 
-      <Sky messages={data.messages} canDelete={isOwner} weather={weather} />
+      <Sky messages={data.messages} canDelete={isOwner} weather={weather} tags={data.tags.messages} />
 
       {isOwner && (
         <section aria-labelledby="checkin-heading" className="flex flex-col gap-6">
@@ -109,7 +113,7 @@ export default async function HomePage({
             key={`board-${day}`}
             day={day}
             editable={isToday}
-            notes={boardNotes(isToday, data.questions, data.answers)}
+            notes={boardNotes(isToday, data.questions, data.answers, data.tags.answers)}
           />
           {isToday && <DayStickerPicker key={`sticker-${day}`} day={day} initial={sticker} />}
         </section>

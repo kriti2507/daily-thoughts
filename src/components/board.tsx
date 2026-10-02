@@ -6,6 +6,7 @@ import { useRef, useState, useTransition } from "react";
 import type { CSSProperties, FormEvent, KeyboardEvent, PointerEvent } from "react";
 
 import { moveNoteAction, saveCheckinAction } from "@/app/checkin-actions";
+import { CategoryTapes } from "@/components/category-tapes";
 import { PostIt } from "@/components/post-it";
 import { boardRows, clamp01, defaultNotePosition, noteColor } from "@/lib/board";
 import type { BoardNote, NotePosition } from "@/lib/board";
@@ -308,6 +309,7 @@ export function Board({
                 {note.text}
               </p>
             )}
+            <CategoryTapes tags={note.tags} />
           </PostIt>
         );
       })}

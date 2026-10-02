@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("next/server", () => ({
+  after: vi.fn(),
+}));
+vi.mock("@/lib/classify", () => ({
+  classifyInBackground: vi.fn(),
+}));
 vi.mock("@/lib/checkins", () => ({
   addQuestion: vi.fn(),
   deleteAnswer: vi.fn(),
@@ -26,6 +32,7 @@ vi.mock("next/cache", () => ({
 }));
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import {
   addQuestionAction,
   moveNoteAction,
@@ -36,6 +43,7 @@ import {
   updateQuestionAction,
 } from "@/app/checkin-actions";
 import { isAdmin } from "@/lib/admin";
+import { classifyInBackground } from "@/lib/classify";
 import {
   addQuestion,
   deleteAnswer,
@@ -76,6 +84,7 @@ describe("saveCheckinAction", () => {
     expect(upsertAnswer).toHaveBeenCalledWith(TODAY, 1, "felt fine");
     expect(deleteAnswer).toHaveBeenCalledWith(TODAY, 2);
     expect(revalidatePath).toHaveBeenCalledWith("/");
+    expect(after).toHaveBeenCalledWith(classifyInBackground);
   });
 
   it("refuses a non-admin", async () => {

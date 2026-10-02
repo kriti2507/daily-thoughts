@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import { isAdmin } from "@/lib/admin";
 import { clamp01 } from "@/lib/board";
@@ -14,6 +15,7 @@ import {
   updateQuestionText,
   upsertAnswer,
 } from "@/lib/checkins";
+import { classifyInBackground } from "@/lib/classify";
 import { parseDay, today } from "@/lib/days";
 import { isSticker } from "@/lib/sticker-list";
 import { clearDaySticker, setDaySticker } from "@/lib/stickers";
@@ -116,6 +118,7 @@ export async function saveCheckinAction(
     }
   }
   revalidatePath("/");
+  after(classifyInBackground);
   return { ok: true };
 }
 
