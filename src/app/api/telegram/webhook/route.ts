@@ -1,3 +1,6 @@
+import { after } from "next/server";
+
+import { classifyInBackground } from "@/lib/classify";
 import { requireEnv, requireNumberEnv } from "@/lib/env";
 import { insertMessage } from "@/lib/messages";
 
@@ -53,6 +56,7 @@ export async function POST(request: Request): Promise<Response> {
       text: message.text,
       sentAt: new Date(message.date * 1000),
     });
+    after(classifyInBackground);
   } catch (error) {
     // Losing one message beats unbounded Telegram retries against a down database.
     console.error("failed to store telegram message", error);

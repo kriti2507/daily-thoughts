@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("next/server", () => ({
+  after: vi.fn(),
+}));
+vi.mock("@/lib/classify", () => ({
+  classifyInBackground: vi.fn(),
+}));
 vi.mock("@/lib/messages", () => ({
   deleteMessage: vi.fn(),
   insertWebMessage: vi.fn(),
@@ -12,8 +18,10 @@ vi.mock("next/cache", () => ({
 }));
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { createMessageAction, deleteMessageAction } from "@/app/actions";
 import { isAdmin } from "@/lib/admin";
+import { classifyInBackground } from "@/lib/classify";
 import { deleteMessage, insertWebMessage } from "@/lib/messages";
 
 afterEach(() => {
@@ -21,6 +29,7 @@ afterEach(() => {
   vi.mocked(deleteMessage).mockClear();
   vi.mocked(insertWebMessage).mockClear();
   vi.mocked(revalidatePath).mockClear();
+  vi.mocked(after).mockClear();
 });
 
 describe("deleteMessageAction", () => {
@@ -58,6 +67,7 @@ describe("createMessageAction", () => {
 
     expect(insertWebMessage).toHaveBeenCalledWith("a thought");
     expect(revalidatePath).toHaveBeenCalledWith("/");
+    expect(after).toHaveBeenCalledWith(classifyInBackground);
   });
 
   it("refuses a non-admin", async () => {
@@ -65,6 +75,7 @@ describe("createMessageAction", () => {
 
     await expect(createMessageAction("a thought")).rejects.toThrow("unauthorized");
     expect(insertWebMessage).not.toHaveBeenCalled();
+    expect(after).not.toHaveBeenCalled();
   });
 
   it("refuses text that is empty, blank, too long, or not a string", async () => {

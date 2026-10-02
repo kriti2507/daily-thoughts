@@ -1,9 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("next/server", () => ({
+  after: vi.fn(),
+}));
+vi.mock("@/lib/classify", () => ({
+  classifyInBackground: vi.fn(),
+}));
 vi.mock("@/lib/messages", () => ({
   insertMessage: vi.fn(),
 }));
 
+import { after } from "next/server";
+
+import { classifyInBackground } from "@/lib/classify";
 import { insertMessage } from "@/lib/messages";
 import { POST } from "@/app/api/telegram/webhook/route";
 
@@ -55,6 +64,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.mocked(insertMessage).mockClear();
+  vi.mocked(after).mockClear();
 });
 
 describe("POST /api/telegram/webhook", () => {
@@ -77,6 +87,7 @@ describe("POST /api/telegram/webhook", () => {
 
     expect(response.status).toBe(200);
     expect(insertMessage).not.toHaveBeenCalled();
+    expect(after).not.toHaveBeenCalled();
   });
 
   it("ignores an update with no message text", async () => {
@@ -96,6 +107,7 @@ describe("POST /api/telegram/webhook", () => {
       text: "a thought",
       sentAt: new Date(1_757_000_000 * 1000),
     });
+    expect(after).toHaveBeenCalledWith(classifyInBackground);
   });
 
   it("returns 200 when the insert fails, so Telegram does not retry forever", async () => {
