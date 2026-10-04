@@ -61,14 +61,3 @@ export async function listMessagesForDay(day: string): Promise<Message[]> {
   `;
   return rows.map(toMessage);
 }
-
-// `to_char` so the driver hands back "YYYY-MM-DD" strings rather than Dates.
-export async function listDaysWithMessages(from: string, to: string): Promise<string[]> {
-  const sql = getSql();
-  const rows = await sql<{ day: string }[]>`
-    SELECT DISTINCT to_char((sent_at AT TIME ZONE ${TIME_ZONE})::date, 'YYYY-MM-DD') AS day
-    FROM messages
-    WHERE (sent_at AT TIME ZONE ${TIME_ZONE})::date BETWEEN ${from}::date AND ${to}::date
-  `;
-  return rows.map((row) => row.day);
-}

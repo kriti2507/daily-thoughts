@@ -75,17 +75,6 @@ export async function listAnswersForDay(day: string): Promise<Answer[]> {
   }));
 }
 
-// `to_char` so the driver hands back "YYYY-MM-DD" strings rather than Dates.
-export async function listDaysWithAnswers(from: string, to: string): Promise<string[]> {
-  const sql = getSql();
-  const rows = await sql<{ day: string }[]>`
-    SELECT DISTINCT to_char(day, 'YYYY-MM-DD') AS day
-    FROM answers
-    WHERE day BETWEEN ${from}::date AND ${to}::date
-  `;
-  return rows.map((row) => row.day);
-}
-
 // Copies the question's current wording in on every save, so an answer always
 // shows the question as it read when last answered.
 export async function upsertAnswer(day: string, questionId: number, text: string): Promise<void> {
