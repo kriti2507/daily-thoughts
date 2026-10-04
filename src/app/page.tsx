@@ -8,13 +8,13 @@ import { TearOffCalendar } from "@/components/tear-off-calendar";
 import { TimelineDock } from "@/components/timeline-dock";
 import { isAdmin } from "@/lib/admin";
 import { boardNotes } from "@/lib/board";
-import { listActiveQuestions, listAnswersForDay, listDaysWithAnswers } from "@/lib/checkins";
+import { listActiveQuestions, listAnswersForDay } from "@/lib/checkins";
 import type { Answer, Question } from "@/lib/checkins";
 import { listTagsForDay } from "@/lib/classifications";
 import type { DayTags } from "@/lib/classifications";
 import { formatDayHeading, monthRange, parseDay, today } from "@/lib/days";
-import { listDaysWithMessages, listMessagesForDay } from "@/lib/messages";
-import { listDayStickers } from "@/lib/stickers";
+import { listMessagesForDay } from "@/lib/messages";
+import { listMonthMarks } from "@/lib/month-marks";
 import { mindWeather } from "@/lib/weather";
 
 export const dynamic = "force-dynamic";
@@ -28,16 +28,14 @@ function Notice({ children }: { children: ReactNode }) {
 // private too, even on public thoughts.
 async function loadDay(day: string, isOwner: boolean) {
   const { first, last } = monthRange(day);
-  const [messages, messageDays, answerDays, answers, questions, stickers, tags] = await Promise.all([
+  const [messages, marks, answers, questions, tags] = await Promise.all([
     listMessagesForDay(day),
-    listDaysWithMessages(first, last),
-    isOwner ? listDaysWithAnswers(first, last) : ([] as string[]),
+    listMonthMarks(first, last, isOwner),
     isOwner ? listAnswersForDay(day) : ([] as Answer[]),
     isOwner ? listActiveQuestions() : ([] as Question[]),
-    isOwner ? listDayStickers(first, last) : ({} as Record<string, string>),
     isOwner ? listTagsForDay(day) : ({ messages: {}, answers: {} } as DayTags),
   ]);
-  return { messages, messageDays, answerDays, answers, questions, stickers, tags };
+  return { messages, ...marks, answers, questions, tags };
 }
 
 export default async function HomePage({

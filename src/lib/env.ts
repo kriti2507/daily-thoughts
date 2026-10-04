@@ -10,6 +10,10 @@ export function optionalEnv(name: string, fallback: string): string {
   return process.env[name] || fallback;
 }
 
+export function optionalNumberEnv(name: string, fallback: number): number {
+  return process.env[name] ? requireNumberEnv(name) : fallback;
+}
+
 export function requireNumberEnv(name: string): number {
   const value = Number(requireEnv(name));
   if (!Number.isFinite(value)) {
