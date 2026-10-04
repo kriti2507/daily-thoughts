@@ -103,6 +103,32 @@ editing categories, the Categories section shows how many are waiting, and
 **Classify now** handles them a batch at a time. Like check-ins, categories
 are private: visitors never see them.
 
+## Asking Claude about your data (MCP)
+
+The app is also an [MCP](https://modelcontextprotocol.io) server at `/mcp`,
+so Claude (or any MCP app) can read your journal and answer questions about
+it. It has one read-only tool, `get_data`, which returns everything grouped by
+day: thoughts with their times, check-in questions (as worded that day) and
+answers, the day's sticker, and each entry's categories. It can be narrowed
+to a date range. Nothing can be written or deleted through it.
+
+It needs `ADMIN_SECRET`. When an app connects, your browser opens a consent
+page showing where you'll be sent after allowing (e.g. **claude.ai**). Only
+allow if that matches the app you started from, and enter `ADMIN_SECRET` as
+the password. Rotating `ADMIN_SECRET` disconnects every app, along with every
+browser.
+
+- **claude.ai** (also desktop and mobile): Settings → Connectors → Add custom
+  connector, URL `https://your-app.vercel.app/mcp`, then Connect.
+- **Claude Code:**
+  `claude mcp add --transport http daily-thoughts https://your-app.vercel.app/mcp`,
+  then `/mcp` → `daily-thoughts` → authenticate.
+
+Apps stay connected for 30 days after they're last used. The login is stateless
+OAuth with nothing stored, ported from small_wins: every client id, code and
+token is signed with a key derived from `ADMIN_SECRET`. Code is in
+`src/lib/mcp/` and the `src/app/mcp` and `src/app/oauth` routes.
+
 ## Tests
 
 ```bash
@@ -118,6 +144,6 @@ npm test
 | `TELEGRAM_BOT_TOKEN` | yes | Used by `webhook:set`. |
 | `TELEGRAM_CHAT_ID` | yes | The only chat whose messages are stored. Must be numeric. |
 | `TELEGRAM_WEBHOOK_SECRET` | yes | Verified on every webhook request. |
-| `ADMIN_SECRET` | no | Enables writing and deleting from the page. See [Writing and deleting from the page](#writing-and-deleting-from-the-page). |
+| `ADMIN_SECRET` | no | Enables writing and deleting from the page, and the MCP server. See [Writing and deleting from the page](#writing-and-deleting-from-the-page) and [Asking Claude about your data](#asking-claude-about-your-data-mcp). |
 | `TYPESAFE_API_KEY` | no | Enables sorting entries into categories. See [Categories](#categories). Server-side only. |
 | `DISPLAY_TIME_ZONE` | no | IANA zone name (e.g. `Asia/Tokyo`) for timestamps, and for where one day ends and the next begins. Defaults to `UTC`. An invalid zone or an offset like `+05:30` falls back to `UTC` with a logged warning. |
