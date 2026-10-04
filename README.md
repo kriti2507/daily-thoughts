@@ -114,6 +114,7 @@ npm test
 | Variable | Required | Purpose |
 |---|---|---|
 | `DATABASE_URL` | yes | Postgres connection string. |
+| `DATABASE_POOL_MAX` | no | Connections each server instance may open. Defaults to `5`, enough for a page's queries to run in parallel. |
 | `TELEGRAM_BOT_TOKEN` | yes | Used by `webhook:set`. |
 | `TELEGRAM_CHAT_ID` | yes | The only chat whose messages are stored. Must be numeric. |
 | `TELEGRAM_WEBHOOK_SECRET` | yes | Verified on every webhook request. |
