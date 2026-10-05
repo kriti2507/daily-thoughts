@@ -1,35 +1,11 @@
-import { optionalEnv } from "@/lib/env";
+// A day is a calendar date in Japan time, passed around as a "YYYY-MM-DD"
+// string. Strings rather than Dates, so a day can never be shifted by reading
+// it in the server's own zone (UTC on Vercel).
 
-// A day is a calendar date in DISPLAY_TIME_ZONE, passed around as a
-// "YYYY-MM-DD" string. Strings rather than Dates, so a day can never be shifted
-// by reading it in the server's own zone (UTC on Vercel).
-
-// Newer Node accepts offset zones like "+05:30" as valid Intl time zones, but
-// Postgres's `AT TIME ZONE '+05:30'` reads that as a POSIX spec with the sign
-// inverted. JS and SQL would then disagree about which day it is, so offsets
-// are rejected here rather than passed through.
-export function resolveTimeZone(configured: string): string {
-  if (configured.startsWith("+") || configured.startsWith("-")) {
-    console.error(
-      `Invalid DISPLAY_TIME_ZONE ${JSON.stringify(configured)}; falling back to UTC`,
-    );
-    return "UTC";
-  }
-  try {
-    return new Intl.DateTimeFormat("en-US", { timeZone: configured }).resolvedOptions()
-      .timeZone;
-  } catch {
-    console.error(
-      `Invalid DISPLAY_TIME_ZONE ${JSON.stringify(configured)}; falling back to UTC`,
-    );
-    return "UTC";
-  }
-}
-
-// Resolved once at module scope: the zone can't change between renders.
-// In the browser DISPLAY_TIME_ZONE isn't available, so this is always UTC
-// there: client code must get "today" as a prop, never call `today()`.
-export const TIME_ZONE = resolveTimeZone(optionalEnv("DISPLAY_TIME_ZONE", "UTC"));
+// The one zone for everything: where a day ends, times shown on the page, and
+// what the MCP server reports. A constant, so server, browser and Postgres
+// (via `AT TIME ZONE`) always agree.
+export const TIME_ZONE = "Asia/Tokyo";
 
 const DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 

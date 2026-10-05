@@ -74,8 +74,8 @@ Move between days with the tear-off calendar (top right on desktop; its
 calendar button opens the month), the timeline dock at the bottom on phones,
 ←/→ or a sideways swipe.
 `t` jumps to today. Today's post-its are blank notes you write on; "Stick it"
-(or ⌘/Ctrl+Enter) saves them, and you can edit until midnight in
-`DISPLAY_TIME_ZONE`, after which they're read-only. Blank answers are skipped.
+(or ⌘/Ctrl+Enter) saves them, and you can edit until midnight
+Japan time (JST), after which they're read-only. Blank answers are skipped.
 Drag a note by its tape (desktop) to rearrange the board on any day. Pick one
 sticker for today to mark the mood; it shows on the calendar and the dock.
 
@@ -146,4 +146,6 @@ npm test
 | `TELEGRAM_WEBHOOK_SECRET` | yes | Verified on every webhook request. |
 | `ADMIN_SECRET` | no | Enables writing and deleting from the page, and the MCP server. See [Writing and deleting from the page](#writing-and-deleting-from-the-page) and [Asking Claude about your data](#asking-claude-about-your-data-mcp). |
 | `TYPESAFE_API_KEY` | no | Enables sorting entries into categories. See [Categories](#categories). Server-side only. |
-| `DISPLAY_TIME_ZONE` | no | IANA zone name (e.g. `Asia/Tokyo`) for timestamps, and for where one day ends and the next begins. Defaults to `UTC`. An invalid zone or an offset like `+05:30` falls back to `UTC` with a logged warning. |
+All dates and times are in Japan time (`Asia/Tokyo`): where one day ends and
+the next begins, the times on the page, and what the MCP server returns. It's
+fixed in `src/lib/days.ts`.

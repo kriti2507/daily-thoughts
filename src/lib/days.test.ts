@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   dayInZone,
@@ -8,29 +8,17 @@ import {
   monthGrid,
   monthRange,
   parseDay,
-  resolveTimeZone,
   shiftDay,
   shiftMonth,
+  today,
 } from "@/lib/days";
 
-describe("resolveTimeZone", () => {
-  beforeEach(() => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it("returns the canonical IANA name", () => {
-    expect(resolveTimeZone("Asia/Tokyo")).toBe("Asia/Tokyo");
-    expect(resolveTimeZone("asia/tokyo")).toBe("Asia/Tokyo");
-  });
-
-  it("rejects offset zones and unknown zones, falling back to UTC", () => {
-    expect(resolveTimeZone("+05:30")).toBe("UTC");
-    expect(resolveTimeZone("-08:00")).toBe("UTC");
-    expect(resolveTimeZone("Not/AZone")).toBe("UTC");
+describe("today", () => {
+  it("is the date in Japan, whatever the server's zone", () => {
+    // 23:30 UTC on the 30th is already 08:30 on the 1st in Tokyo.
+    expect(today(new Date("2026-09-30T23:30:00Z"))).toBe("2026-10-01");
+    // 14:59 UTC is 23:59 in Tokyo, still the same day.
+    expect(today(new Date("2026-09-30T14:59:00Z"))).toBe("2026-09-30");
   });
 });
 
