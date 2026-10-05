@@ -9,7 +9,6 @@ const SOURCE_LABELS: Record<MessageSource, string> = {
   web: "web",
 };
 
-// Formatted here, on the server, where TIME_ZONE is configured.
 function formatTime(date: Date): string {
   return date.toLocaleTimeString("en-US", {
     timeZone: TIME_ZONE,
